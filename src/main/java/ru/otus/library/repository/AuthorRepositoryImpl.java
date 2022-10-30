@@ -27,7 +27,7 @@ public class AuthorRepositoryImpl implements AuthorRepository {
         final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
         mapSqlParameterSource.addValue("id", id);
 
-        return namedJdbc.queryForObject("SELECT * FROM authors WHERE id = :id", mapSqlParameterSource, new AuthorMapper());
+        return namedJdbc.queryForObject("SELECT authors.id, authors.author_name FROM authors WHERE id = :id", mapSqlParameterSource, new AuthorMapper());
     }
 
     @Override
@@ -35,7 +35,7 @@ public class AuthorRepositoryImpl implements AuthorRepository {
         final HashMap<String, Object> sqlParams = new HashMap<>();
         sqlParams.put("name", name);
         try {
-            return namedJdbc.queryForObject("SELECT * FROM authors WHERE author_name = :name", sqlParams, new AuthorMapper());
+            return namedJdbc.queryForObject("SELECT authors.id, authors.author_name FROM authors WHERE author_name = :name", sqlParams, new AuthorMapper());
         } catch (DataAccessException e) {
             throw new RuntimeException(e.getLocalizedMessage());
         }

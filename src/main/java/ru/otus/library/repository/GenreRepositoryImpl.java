@@ -25,7 +25,7 @@ public class GenreRepositoryImpl implements GenreRepository {
         final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
         mapSqlParameterSource.addValue("genre_name", genreName);
         try {
-            return namedJdbc.queryForObject("SELECT * FROM genres WHERE genre_name = :genre_name", mapSqlParameterSource, new GenreMapper());
+            return namedJdbc.queryForObject("SELECT genres.id, genres.genre_name FROM genres WHERE genre_name = :genre_name", mapSqlParameterSource, new GenreMapper());
         } catch (DataAccessException e) {
             throw new RuntimeException("Data access error. " + e.getLocalizedMessage());
         }
@@ -33,7 +33,7 @@ public class GenreRepositoryImpl implements GenreRepository {
 
     @Override
     public List<Genre> findAllGenres() {
-        return namedJdbc.getJdbcOperations().query("SELECT * FROM genres", new GenreMapper());
+        return namedJdbc.getJdbcOperations().query("SELECT genres.id, genres.genre_name FROM genres", new GenreMapper());
     }
 
     @Override
