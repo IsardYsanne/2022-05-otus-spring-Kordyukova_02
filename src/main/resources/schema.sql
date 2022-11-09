@@ -23,3 +23,10 @@ CREATE TABLE IF NOT EXISTS books_authors
     books_id   INTEGER REFERENCES books (id) ON DELETE CASCADE,
     PRIMARY KEY (authors_id, books_id)
 );
+
+CREATE TABLE IF NOT EXISTS book_comments (
+    id SERIAL PRIMARY KEY,
+    comment_text TEXT,
+    comment_date TIMESTAMP,
+    book_id INTEGER REFERENCES books(id) ON DELETE CASCADE
+);

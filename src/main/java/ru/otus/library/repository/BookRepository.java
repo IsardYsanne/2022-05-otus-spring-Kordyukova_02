@@ -19,9 +19,7 @@ public interface BookRepository {
 
     Book saveBook(final Book book);
 
-    int updateBookTitleById(final Long id, final String newTitle);
-
-    int deleteBookById(final Long id);
+    boolean deleteBookById(final Long id);
 
     int deleteAll();
 }

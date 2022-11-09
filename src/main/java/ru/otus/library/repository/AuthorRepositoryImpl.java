@@ -1,41 +1,31 @@
 package ru.otus.library.repository;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Repository;
-import ru.otus.library.mapper.AuthorMapper;
+import org.springframework.stereotype.Component;
 import ru.otus.library.model.entity.Author;
 
-import java.util.Collections;
-import java.util.HashMap;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import java.util.List;
 
-@Repository
+@Component
 public class AuthorRepositoryImpl implements AuthorRepository {
 
-    private final NamedParameterJdbcOperations namedJdbc;
-
-    public AuthorRepositoryImpl(NamedParameterJdbcOperations namedJdbc) {
-        this.namedJdbc = namedJdbc;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public Author findAuthorById(final String id) {
-        final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-        mapSqlParameterSource.addValue("id", id);
-
-        return namedJdbc.queryForObject("SELECT authors.id, authors.author_name FROM authors WHERE id = :id", mapSqlParameterSource, new AuthorMapper());
+        return entityManager.find(Author.class, id);
     }
 
     @Override
     public Author findAuthorByName(final String name) {
-        final HashMap<String, Object> sqlParams = new HashMap<>();
-        sqlParams.put("name", name);
+        final TypedQuery<Author> query = entityManager.createQuery("SELECT a FROM Author a WHERE a.name = :name", Author.class);
+        query.setParameter("name", name);
         try {
-            return namedJdbc.queryForObject("SELECT authors.id, authors.author_name FROM authors WHERE author_name = :name", sqlParams, new AuthorMapper());
+            return query.getSingleResult();
         } catch (DataAccessException e) {
             throw new RuntimeException(e.getLocalizedMessage());
         }
@@ -43,39 +33,33 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 
     @Override
     public List<String> findAllAuthorsNames() {
-        return namedJdbc.getJdbcOperations().queryForList("SELECT author_name FROM authors", String.class);
+        final TypedQuery<String> query = entityManager.createQuery("SELECT a.name FROM Author a", String.class);
+        return query.getResultList();
     }
 
     @Override
     public Author saveAuthor(final Author author) {
-        final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-        mapSqlParameterSource.addValue("name", author.getName());
-        final KeyHolder keyHolder = new GeneratedKeyHolder();
-        namedJdbc.update("INSERT INTO authors(author_name) VALUES (:name)", mapSqlParameterSource, keyHolder, new String[]{"id"});
-        author.setId(keyHolder.getKey().longValue());
-        author.setBooks(Collections.emptyList());
-
+        entityManager.persist(author);
         return author;
     }
 
     @Override
-    public int deleteAuthor(final Author author) {
-        final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-        mapSqlParameterSource.addValue("id", author.getId());
-
-        return namedJdbc.update("DELETE FROM authors WHERE id = :id", mapSqlParameterSource);
+    public void deleteAuthor(final Author author) {
+        entityManager.remove(author);
     }
 
     @Override
-    public int deleteAuthorById(final Long id) {
-        final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-        mapSqlParameterSource.addValue("id", id);
-
-        return namedJdbc.update("DELETE FROM authors WHERE id = :id", mapSqlParameterSource);
+    public boolean deleteAuthorById(final Long id) {
+        final Author author = entityManager.find(Author.class, id);
+        if (author != null) {
+            entityManager.remove(author);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public int deleteAll() {
-        return namedJdbc.getJdbcOperations().update("DELETE FROM authors");
+        return entityManager.createQuery("DELETE FROM Author").executeUpdate();
     }
 }

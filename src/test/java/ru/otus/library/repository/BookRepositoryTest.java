@@ -1,25 +1,30 @@
 package ru.otus.library.repository;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.library.model.entity.Author;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Genre;
+import ru.otus.library.service.BookService;
+import ru.otus.library.service.BookServiceImpl;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 @RunWith(SpringRunner.class)
-@JdbcTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({AuthorRepositoryImpl.class, GenreRepositoryImpl.class, BookRepositoryImpl.class})
+@DataJpaTest
+@DirtiesContext
+@Import({BookRepositoryImpl.class})
 public class BookRepositoryTest {
 
     private static final String TEST_TITLE_1 = "testTitle";
@@ -42,24 +47,14 @@ public class BookRepositoryTest {
     private BookRepositoryImpl bookRepository;
 
     @Autowired
-    private AuthorRepositoryImpl authorRepository;
-
-    @Autowired
-    private GenreRepositoryImpl genreRepository;
-
-    @Before
-    public void deleteAll() {
-        bookRepository.deleteAll();
-        authorRepository.deleteAll();
-        genreRepository.deleteAll();
-    }
+    private TestEntityManager entityManager;
 
     private Book saveTestBookToDataBase(String title, String authorName, String genreName) {
         Author author = new Author();
         author.setName(authorName);
-        author = authorRepository.saveAuthor(author);
+        author = entityManager.persist(author);
 
-        final List<Author> authors = new ArrayList<>();
+        Set<Author> authors = new HashSet<>();
         authors.add(author);
 
         final Genre genre = saveTestGenre(genreName);
@@ -69,7 +64,7 @@ public class BookRepositoryTest {
         book.setAuthors(authors);
         book.setGenre(genre);
 
-        return bookRepository.saveBook(book);
+        return entityManager.persist(book);
     }
 
     @Test
@@ -103,7 +98,8 @@ public class BookRepositoryTest {
     public void findBookByAuthorTest() {
         final Book expectedBook = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
         saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
-        final Author author = expectedBook.getAuthors().get(0);
+        Iterator<Author> iterator = expectedBook.getAuthors().iterator();
+        Author author = iterator.next();
 
         final List<Book> books = bookRepository.findBooksByAuthor(author);
         final Book resultBook = books.get(0);
@@ -136,23 +132,10 @@ public class BookRepositoryTest {
                 .contains(expectedBook1, expectedBook2);
     }
 
-    @Test
-    public void updateBookTitleByIdTest() {
-        Book book = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-
-        bookRepository.updateBookTitleById(book.getId(), TEST_TITLE_2);
-
-        book = bookRepository.findBookById(book.getId());
-        final String newTitle = book.getTitle();
-
-        assertThat(newTitle).isEqualTo(TEST_TITLE_2);
-    }
-
     private Genre saveTestGenre(String testName) {
         Genre genre = new Genre();
         genre.setName(testName);
-        genre = genreRepository.saveGenre(genre);
-        return genre;
+        return entityManager.persist(genre);
     }
 
     @Test

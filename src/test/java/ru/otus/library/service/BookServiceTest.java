@@ -50,7 +50,7 @@ public class BookServiceTest {
 
     @Test
     public void findAllBooksTest() {
-        bookService.getAllBooks();
+        bookService.findAllBooks();
         verify(bookRepository).findAllBooks();
     }
 
@@ -59,14 +59,14 @@ public class BookServiceTest {
         final Author author = new Author();
 
         when(authorRepository.findAuthorByName(TEST_AUTHOR_1)).thenReturn(author);
-        bookService.getBooksByAuthorsName(TEST_AUTHOR_1);
+        bookService.findBooksByAuthorsName(TEST_AUTHOR_1);
         verify(bookRepository).findBooksByAuthor(author);
     }
 
     @Test
     public void findBooksByAuthorsNameWhenNoAuthorTest() {
         when(authorRepository.findAuthorByName(TEST_AUTHOR_1)).thenReturn(null);
-        final List<Book> books = bookService.getBooksByAuthorsName(TEST_AUTHOR_1);
+        final List<Book> books = bookService.findBooksByAuthorsName(TEST_AUTHOR_1);
         assertThat(books).isEmpty();
     }
 

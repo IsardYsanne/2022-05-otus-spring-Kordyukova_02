@@ -12,7 +12,7 @@ public interface GenreRepository {
 
     Genre saveGenre(final Genre genre);
 
-    int deleteGenre(final Genre genre);
+    void deleteGenre(final Genre genre);
 
     int deleteAll();
 }

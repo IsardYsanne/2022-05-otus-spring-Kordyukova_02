@@ -1,20 +1,33 @@
 package ru.otus.library.model.entity;
 
-import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import java.util.Set;
 
+@Entity
+@Table(name = "authors")
 public class Author {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "author_name")
     private String name;
-
-    private List<Book> books;
+    @ManyToMany(cascade = CascadeType.PERSIST, mappedBy = "authors")
+    private Set<Book> books;
 
     public Author(String authorName) {
         this.name = authorName;
     }
 
-    public Author(List<Book> books, String name) {
+    public Author(Set<Book> books, String name) {
         this.books = books;
         this.name = name;
     }
@@ -30,11 +43,11 @@ public class Author {
         this.id = id;
     }
 
-    public List<Book> getBooks() {
+    public Set<Book> getBooks() {
         return books;
     }
 
-    public void setBooks(List<Book> books) {
+    public void setBooks(Set<Book> books) {
         this.books = books;
     }
 

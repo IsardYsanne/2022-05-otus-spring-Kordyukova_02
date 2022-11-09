@@ -14,9 +14,9 @@ public interface AuthorRepository {
 
     Author saveAuthor(final Author author);
 
-    int deleteAuthor(final Author author);
+    void deleteAuthor(final Author author);
 
-    int deleteAuthorById(final Long id);
+    boolean deleteAuthorById(final Long id);
 
     int deleteAll();
 }
