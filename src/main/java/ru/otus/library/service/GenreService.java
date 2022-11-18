@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface GenreService {
 
-    List<String> getAllGenres();
+    List<String> findAllGenres();
 
-    boolean addNewGenre(Genre genre);
+    boolean saveNewGenre(Genre genre);
 
     boolean deleteGenre(final String genreName);
 

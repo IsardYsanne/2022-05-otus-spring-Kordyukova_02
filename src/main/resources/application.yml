@@ -4,11 +4,11 @@ spring:
     url: jdbc:postgresql://localhost:5432/library
     username: userdb
     password: pass
+#    initialization-mode: always
+#
+#  jpa:
+#    generate-ddl: true
 
-  sql:
-    init:
-      mode: always
-      #      never
-      #      always
-      data-locations: data.sql
-      schema-locations: schema.sql
+logging:
+  level:
+    root: error

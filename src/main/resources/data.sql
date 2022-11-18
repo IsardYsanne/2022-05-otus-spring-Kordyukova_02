@@ -73,3 +73,19 @@ VALUES (
            (SELECT id FROM authors WHERE author_name = 'Р.Бредбери'),
            (SELECT id FROM books WHERE title = '451 градус по Фаренгейту')
        );
+
+INSERT INTO book_comments (comment_text, comment_date, book_id)
+VALUES ('Главный герой вызывает отвращение, а книга необычная, не для всех.',
+        '2022-10-10 12:42:12',
+        (SELECT id FROM books WHERE title = 'Лолита'));
+
+INSERT INTO book_comments (comment_text, comment_date, book_id)
+VALUES ('Я боюсь оставлять коммент на эту книгу.',
+        '2021-07-14 16:45:11',
+        (SELECT id FROM books WHERE title = '1984'));
+
+INSERT INTO book_comments (comment_text, comment_date, book_id)
+VALUES ('Я ваще ничего не понял. ' ||
+        'Однако мне понравилось :). ',
+        '2019-05-02 09:12:12',
+        (SELECT id FROM books WHERE title = 'Город Солнца'));

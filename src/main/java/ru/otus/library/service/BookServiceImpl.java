@@ -9,9 +9,10 @@ import ru.otus.library.repository.AuthorRepository;
 import ru.otus.library.repository.BookRepository;
 import ru.otus.library.repository.GenreRepository;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class BookServiceImpl implements BookService {
@@ -31,13 +32,12 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Book> getAllBooks() {
+    public List<Book> findAllBooks() {
         return bookRepository.findAllBooks();
     }
 
     @Override
-    public List<Book> getBooksByAuthorsName(final String name) {
+    public List<Book> findBooksByAuthorsName(final String name) {
         final Author author = authorRepository.findAuthorByName(name);
         if (author == null) {
             return Collections.emptyList();
@@ -45,25 +45,26 @@ public class BookServiceImpl implements BookService {
         return bookRepository.findBooksByAuthor(author);
     }
 
+    @Transactional
     @Override
-    public boolean addNewBook(Book book) {
+    public boolean saveNewBook(Book book) {
         Genre genre = genreRepository.findGenreByName(book.getGenre().getName());
         if (genre == null) {
             genre = genreRepository.saveGenre(book.getGenre());
         }
         book.setGenre(genre);
 
-        final List<Author> authorList = new ArrayList<>();
+        final Set<Author> authorSet = new HashSet<>();
         for (Author author : book.getAuthors()) {
             Author checkAuthor = authorRepository.findAuthorByName(author.getName());
             if (checkAuthor == null) {
                 author = authorRepository.saveAuthor(author);
-                authorList.add(author);
+                authorSet.add(author);
             } else {
-                authorList.add(checkAuthor);
+                authorSet.add(checkAuthor);
             }
         }
-        book.setAuthors(authorList);
+        book.setAuthors(authorSet);
 
         if (isBookDuplicate(book)) {
             return false;
@@ -73,16 +74,21 @@ public class BookServiceImpl implements BookService {
         return book.getId() != null;
     }
 
+    @Transactional
     @Override
     public boolean updateBookTitleById(final Long id, final String newTitle) {
-        int result = bookRepository.updateBookTitleById(id, newTitle);
-        return result > 0;
+        final Book book = bookRepository.findBookById(id);
+        if (book != null) {
+            book.setTitle(newTitle);
+            return true;
+        }
+        return false;
     }
 
+    @Transactional
     @Override
     public boolean deleteBookById(final Long id) {
-        int result = bookRepository.deleteBookById(id);
-        return result > 0;
+        return bookRepository.deleteBookById(id);
     }
 
     @Override

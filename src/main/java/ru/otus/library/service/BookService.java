@@ -6,11 +6,11 @@ import java.util.List;
 
 public interface BookService {
 
-    List<Book> getAllBooks();
+    List<Book> findAllBooks();
 
-    List<Book> getBooksByAuthorsName(final String name);
+    List<Book> findBooksByAuthorsName(final String name);
 
-    boolean addNewBook(Book book);
+    boolean saveNewBook(Book book);
 
     boolean updateBookTitleById(final Long id, final String newTitle);
 

@@ -7,20 +7,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.shell.Shell;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
+import ru.otus.library.model.entity.Comment;
 import ru.otus.library.repository.AuthorRepositoryImpl;
 import ru.otus.library.repository.BookRepositoryImpl;
+import ru.otus.library.repository.CommentRepositoryImpl;
 import ru.otus.library.repository.GenreRepositoryImpl;
 import ru.otus.library.model.entity.Author;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Genre;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Transactional
 public class LibraryCLITest {
 
     private static final String TEST_TITLE_1 = "testName";
@@ -35,6 +40,10 @@ public class LibraryCLITest {
 
     private static final String TEST_GENRE_2 = "testGenre2";
 
+    private static final String TEST_TEXT_1 = "testText1";
+
+    private static final String TEST_TEXT_2 = "testText2";
+
     @Autowired
     private Shell shell;
 
@@ -47,11 +56,15 @@ public class LibraryCLITest {
     @Autowired
     private GenreRepositoryImpl genreRepository;
 
+    @Autowired
+    private CommentRepositoryImpl commentRepository;
+
     @Before
     public void init() {
         genreRepository.deleteAll();
         authorRepository.deleteAll();
         bookRepository.deleteAll();
+        commentRepository.deleteAll();
     }
 
     @Test
@@ -110,6 +123,22 @@ public class LibraryCLITest {
     }
 
     @Test
+    public void findAllCommentsForBookTest() {
+        Book book = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        Comment comment1 = new Comment(book, TEST_TEXT_1);
+        Comment comment2 = new Comment(book, TEST_TEXT_2);
+
+        commentRepository.saveComment(comment1);
+        commentRepository.saveComment(comment2);
+
+        Object result = shell.evaluate(() -> "comment-book " + book.getId());
+
+        assertThat(result.toString())
+                .isNotNull()
+                .contains(TEST_TEXT_1, TEST_TEXT_2);
+    }
+
+    @Test
     public void saveNewBookOneAuthorWhenAlreadyExistsTest() {
         saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
 
@@ -119,15 +148,6 @@ public class LibraryCLITest {
         final String expected = "Такая книга уже существует.";
 
         assertThat(result).isEqualTo(expected);
-    }
-
-    @Test
-    public void saveNewGenreWhenSuccessfulTest() {
-        shell.evaluate(() -> "add-genre " + TEST_GENRE_1);
-
-        final Genre genre = genreRepository.findGenreByName(TEST_GENRE_1);
-
-        assertThat(genre).isNotNull();
     }
 
     @Test
@@ -160,11 +180,23 @@ public class LibraryCLITest {
         assertThat(result).isEqualTo(expected);
     }
 
+    @Test
+    public void updateCommentByIdTest() {
+        Book book = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        Comment comment = new Comment(book, TEST_TEXT_1);
+        commentRepository.saveComment(comment);
+
+        shell.evaluate(() -> "update-comment " + comment.getId() + " " + TEST_TEXT_2);
+
+        Comment updatedComment = commentRepository.findCommentById(comment.getId());
+        assertThat(updatedComment.getCommentText()).isEqualTo(TEST_TEXT_2);
+    }
+
     private Book saveTestBookToDataBase(String title, String authorName, String genreName) {
         Author author = new Author();
         author.setName(authorName);
         author = authorRepository.saveAuthor(author);
-        final List<Author> authors = new ArrayList<>();
+        final Set<Author> authors = new HashSet<>();
         authors.add(author);
 
         final Genre genre = saveTestGenre(genreName);
@@ -251,5 +283,18 @@ public class LibraryCLITest {
                 .hasSize(1)
                 .contains(genre2)
                 .doesNotContain(genre1);
+    }
+
+    @Test
+    public void deleteCommentByIdTest() {
+        Book book = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        Comment comment = new Comment(book, TEST_TEXT_1);
+        commentRepository.saveComment(comment);
+        Long id = comment.getId();
+
+        shell.evaluate(() -> "del-comment " + id);
+
+        Comment testComment = commentRepository.findCommentById(id);
+        assertThat(testComment).isNull();
     }
 }
