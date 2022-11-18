@@ -1,6 +1,7 @@
 package ru.otus.library.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Comment;
@@ -27,10 +28,15 @@ public class CommentServiceImpl implements CommentService {
         this.bookRepository = bookRepository;
     }
 
+    @Transactional(propagation= Propagation.REQUIRED, readOnly=true, noRollbackFor=Exception.class)
     @Override
     public Set<Comment> findCommentsByBookId(Long bookId) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        final Book book = entityManager.find(Book.class, bookId);
+        /*
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            final Book book = entityManager.find(Book.class, bookId);
+            return book.getComments();
+        */
+        final Book book = bookRepository.findBookById(bookId);
         return book.getComments();
     }
 
