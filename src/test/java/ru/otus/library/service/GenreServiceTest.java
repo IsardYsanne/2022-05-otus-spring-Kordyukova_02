@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.library.model.entity.Genre;
-import ru.otus.library.repository.GenreRepositoryImpl;
+import ru.otus.library.repository.GenreRepository;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +29,7 @@ public class GenreServiceTest {
     private static final String TEST_GENRE_2 = "testGenre2";
 
     @MockBean
-    private GenreRepositoryImpl genreRepository;
+    private GenreRepository genreRepository;
 
     @Autowired
     private GenreServiceImpl genreService;
@@ -51,11 +51,11 @@ public class GenreServiceTest {
 
         List<Genre> genres = new ArrayList<>(Arrays.asList(genre, genre2));
 
-        when(genreRepository.findAllGenres()).thenReturn(genres);
+        when(genreRepository.findAll()).thenReturn(genres);
 
         List<String> resultList = genreService.findAllGenres();
 
-        verify(genreRepository).findAllGenres();
+        verify(genreRepository).findAll();
         assertThat(resultList)
                 .isNotEmpty()
                 .hasSize(2)
@@ -64,10 +64,10 @@ public class GenreServiceTest {
 
     @Test
     public void saveNewGenreWhenSuccessfulTest() {
-        when(genreRepository.findGenreByName(TEST_GENRE_1)).thenReturn(null);
+        when(genreRepository.findByName(TEST_GENRE_1)).thenReturn(null);
         Genre genre = new Genre(TEST_GENRE_1);
         genre.setId(1L);
-        when(genreRepository.saveGenre(any())).thenReturn(genre);
+        when(genreRepository.save(any())).thenReturn(genre);
         boolean result = genreService.saveNewGenre(genre);
 
         assertThat(result).isTrue();

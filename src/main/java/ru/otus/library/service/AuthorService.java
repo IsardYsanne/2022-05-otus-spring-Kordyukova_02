@@ -6,13 +6,17 @@ import java.util.List;
 
 public interface AuthorService {
 
+    Author findAuthorById(final Long id);
+
+    Author findAuthorByName(final String name);
+
     List<String> findAllAuthorsNames();
 
     boolean saveAuthor(final Author author);
 
     void deleteAuthor(final Author author);
 
-    boolean deleteAuthorById(final Long id);
+    void deleteAuthorById(final Long id);
 
     void deleteAll();
 }

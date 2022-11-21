@@ -10,9 +10,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.library.model.entity.Author;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Genre;
-import ru.otus.library.repository.AuthorRepositoryImpl;
-import ru.otus.library.repository.BookRepositoryImpl;
-import ru.otus.library.repository.GenreRepositoryImpl;
+import ru.otus.library.repository.AuthorRepository;
+import ru.otus.library.repository.BookRepository;
+import ru.otus.library.repository.GenreRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,13 +32,13 @@ public class BookServiceTest {
     private static final String TEST_GENRE_1 = "testGenre";
 
     @MockBean
-    private BookRepositoryImpl bookRepository;
+    private BookRepository bookRepository;
 
     @MockBean
-    private AuthorRepositoryImpl authorRepository;
+    private AuthorRepository authorRepository;
 
     @MockBean
-    private GenreRepositoryImpl genreRepository;
+    private GenreRepository genreRepository;
 
     @Autowired
     private BookServiceImpl bookService;
@@ -51,7 +51,7 @@ public class BookServiceTest {
     @Test
     public void findAllBooksTest() {
         bookService.findAllBooks();
-        verify(bookRepository).findAllBooks();
+        verify(bookRepository).findAll();
     }
 
     @Test
@@ -60,7 +60,7 @@ public class BookServiceTest {
 
         when(authorRepository.findAuthorByName(TEST_AUTHOR_1)).thenReturn(author);
         bookService.findBooksByAuthorsName(TEST_AUTHOR_1);
-        verify(bookRepository).findBooksByAuthor(author);
+        verify(bookRepository).findBooksByAuthorId(author.getId());
     }
 
     @Test
@@ -76,13 +76,13 @@ public class BookServiceTest {
         when(bookRepository.findAllTitles()).thenReturn(titles);
 
         final Genre genre = new Genre();
-        when(genreRepository.findGenreByName(TEST_GENRE_1)).thenReturn(genre);
+        when(genreRepository.findByName(TEST_GENRE_1)).thenReturn(genre);
 
         final Author author = new Author();
         when(authorRepository.findAuthorByName(TEST_AUTHOR_1)).thenReturn(author);
 
         final Book book = new Book();
         book.setId(1L);
-        when(bookRepository.saveBook(any())).thenReturn(book);
+        when(bookRepository.save(any())).thenReturn(book);
     }
 }

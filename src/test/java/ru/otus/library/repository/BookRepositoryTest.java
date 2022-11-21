@@ -5,14 +5,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.library.model.entity.Author;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Genre;
-import ru.otus.library.service.BookService;
-import ru.otus.library.service.BookServiceImpl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,7 +21,6 @@ import java.util.Set;
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @DirtiesContext
-@Import({BookRepositoryImpl.class})
 public class BookRepositoryTest {
 
     private static final String TEST_TITLE_1 = "testTitle";
@@ -44,7 +40,7 @@ public class BookRepositoryTest {
     private static final String TEST_AUTHOR_3 = "testAuthor3";
 
     @Autowired
-    private BookRepositoryImpl bookRepository;
+    private BookRepository bookRepository;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -69,13 +65,13 @@ public class BookRepositoryTest {
 
     @Test
     public void findAllBooksTest() {
-        List<Book> books = bookRepository.findAllBooks();
+        List<Book> books = bookRepository.findAll();
         assertThat(books).isEmpty();
 
         final Book book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
         final Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
 
-        books = bookRepository.findAllBooks();
+        books = bookRepository.findAll();
         assertThat(books)
                 .isNotEmpty()
                 .hasSize(2)
@@ -95,13 +91,13 @@ public class BookRepositoryTest {
     }
 
     @Test
-    public void findBookByAuthorTest() {
+    public void findBookByAuthorIdTest() {
         final Book expectedBook = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
         saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
         Iterator<Author> iterator = expectedBook.getAuthors().iterator();
         Author author = iterator.next();
 
-        final List<Book> books = bookRepository.findBooksByAuthor(author);
+        final List<Book> books = bookRepository.findBooksByAuthorId(author.getId());
         final Book resultBook = books.get(0);
 
         assertThat(resultBook).isEqualTo(expectedBook);
@@ -113,7 +109,7 @@ public class BookRepositoryTest {
         saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
 
         final Long id = expectedBook.getId();
-        final Book resultBook = bookRepository.findBookById(id);
+        final Book resultBook = bookRepository.findById(id).orElseThrow();
 
         assertThat(resultBook).isEqualTo(expectedBook);
     }
@@ -141,7 +137,7 @@ public class BookRepositoryTest {
     @Test
     public void saveNewBookTest() {
         final Book book = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        final List<Book> books = bookRepository.findAllBooks();
+        final List<Book> books = bookRepository.findAll();
 
         assertThat(books).hasSize(1).contains(book);
     }
@@ -151,15 +147,15 @@ public class BookRepositoryTest {
         final Book book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
         final Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
 
-        List<Book> books = bookRepository.findAllBooks();
+        List<Book> books = bookRepository.findAll();
         assertThat(books)
                 .isNotEmpty()
                 .hasSize(2)
                 .contains(book1, book2);
 
-        bookRepository.deleteBookById(book1.getId());
+        bookRepository.deleteById(book1.getId());
 
-        books = bookRepository.findAllBooks();
+        books = bookRepository.findAll();
         assertThat(books)
                 .isNotEmpty()
                 .hasSize(1)
@@ -172,7 +168,7 @@ public class BookRepositoryTest {
         final Book book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
         final Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
 
-        List<Book> books = bookRepository.findAllBooks();
+        List<Book> books = bookRepository.findAll();
         assertThat(books)
                 .isNotEmpty()
                 .hasSize(2)
@@ -180,7 +176,7 @@ public class BookRepositoryTest {
 
         bookRepository.deleteAll();
 
-        books = bookRepository.findAllBooks();
+        books = bookRepository.findAll();
         assertThat(books).isEmpty();
     }
 }

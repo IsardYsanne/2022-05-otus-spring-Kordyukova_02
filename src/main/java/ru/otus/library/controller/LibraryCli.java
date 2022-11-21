@@ -84,6 +84,11 @@ public class LibraryCli {
         }
     }
 
+    @ShellMethod(value = "Get book by title", key = "book-title")
+    public Book findBooksByTitle(@ShellOption(help = "book title") String title) {
+        return bookService.findBooksByTitle(title).get(0);
+    }
+
     @ShellMethod(value = "Get books by authors names", key = "book-of-author")
     public String findBooksByAuthorsName(@ShellOption(help = "authors name") String name) {
         return getTableFromList(bookService.findBooksByAuthorsName(name));
@@ -107,12 +112,8 @@ public class LibraryCli {
 
     @ShellMethod(value = "Delete book", key = "delete-book")
     public String deleteBookById(@ShellOption(help = "id of book to delete") Long id) {
-        boolean isSuccessful = bookService.deleteBookById(id);
-        if (isSuccessful) {
-            return "Книга успешно удалена.";
-        } else {
-            return "Нечего удалять.";
-        }
+         bookService.deleteBookById(id);
+         return "Книга успешно удалена.";
     }
 
     @ShellMethod(value = "Add new genre", key = "add-genre")
@@ -130,19 +131,22 @@ public class LibraryCli {
         return genreService.findAllGenres();
     }
 
+    @ShellMethod(value = "Find genre by name", key = "genre-name")
+    public String findGenreByName(@ShellOption(help = "genre name") String genreName) {
+        final Genre genre = genreService.findByName(genreName);
+        return genre.getId() + " " + genre.getName();
+    }
+
     @ShellMethod(value = "Delete genre", key = "delete-genre")
-    public String deleteGenre(@ShellOption(help = "genre to delete") String genreName) {
-        boolean isSuccessful = genreService.deleteGenre(genreName);
-        if (isSuccessful) {
-            return "Жанр успешно удален.";
-        } else {
-            return "Нечего удалять.";
-        }
+    public String deleteGenreByName(@ShellOption(help = "genre to delete") String genreName) {
+        genreService.deleteGenre(genreName);
+        return "Жанр успешно удален.";
     }
 
     @ShellMethod(value = "Add new author", key = "add-author")
-    public void saveNewAuthor(@ShellOption(help = "author name") String authorName) {
+    public String saveNewAuthor(@ShellOption(help = "author name") String authorName) {
         authorService.saveAuthor(new Author(authorName));
+        return "Автор успешно добавлен.";
     }
 
     @ShellMethod(value = "Show all authors names", key = "all-authors-names")
@@ -150,20 +154,27 @@ public class LibraryCli {
         return authorService.findAllAuthorsNames();
     }
 
+    @ShellMethod(value = "Find author by Id", key = "author-id")
+    public String findAuthorById(@ShellOption(help = "author id") Long authorId) {
+        final Author author = authorService.findAuthorById(authorId);
+        return author.getName();
+    }
+
+    @ShellMethod(value = "Find author by name", key = "author-name")
+    public String findAuthorByName(@ShellOption(help = "author name") String authorName) {
+        final Author author = authorService.findAuthorByName(authorName);
+        return author.getId() + " " + author.getName();
+    }
 
     @ShellMethod(value = "Delete author", key = "delete-author")
     public String deleteAuthorById(@ShellOption(help = "delete author by id") Long id) {
-        boolean isSuccessful = authorService.deleteAuthorById(id);
-        if (isSuccessful) {
-            return "Автор был успешно удален.";
-        } else {
-            return "Нечего удалять.";
-        }
+        authorService.deleteAuthorById(id);
+        return "Автор был успешно удален.";
     }
 
     @ShellMethod(value = "Find comments by book id", key = "comment-book")
     public List<String> findAllCommentsForBook(@ShellOption(help = "book id") Long bookId) {
-        return commentService.findCommentsByBookId(bookId).stream().map(Comment::getCommentText).collect(Collectors.toList());
+        return commentService.findCommentsByBookId(bookId);
     }
 
     @ShellMethod(value = "Add new comment", key = "add-comment")
@@ -193,11 +204,7 @@ public class LibraryCli {
 
     @ShellMethod(value = "Delete comment", key = "del-comment")
     public String deleteCommentById(@ShellOption(help = "id of comment to delete") Long id) {
-        final boolean isSuccessful = commentService.deleteCommentById(id);
-        if (isSuccessful) {
-            return "Комментарий успешно удален.";
-        } else {
-            return "Комментарий не существует.";
-        }
+        commentService.deleteCommentById(id);
+        return "Комментарий успешно удален.";
     }
 }

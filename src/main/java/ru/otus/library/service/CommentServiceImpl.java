@@ -1,17 +1,13 @@
 package ru.otus.library.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Comment;
 import ru.otus.library.repository.BookRepository;
 import ru.otus.library.repository.CommentRepository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
-import java.util.Set;
+import java.util.List;
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -20,35 +16,24 @@ public class CommentServiceImpl implements CommentService {
 
     private final BookRepository bookRepository;
 
-    @PersistenceUnit
-    private EntityManagerFactory entityManagerFactory;
-
     public CommentServiceImpl(CommentRepository commentRepository, BookRepository bookRepository) {
         this.commentRepository = commentRepository;
         this.bookRepository = bookRepository;
     }
 
-    @Transactional(propagation= Propagation.REQUIRED, readOnly=true, noRollbackFor=Exception.class)
     @Override
-    public Set<Comment> findCommentsByBookId(Long bookId) {
-        /*
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            final Book book = entityManager.find(Book.class, bookId);
-            return book.getComments();
-        */
-        final Book book = bookRepository.findBookById(bookId);
-        return book.getComments();
+    public List<String> findCommentsByBookId(Long bookId) {
+        return commentRepository.findCommentsByBookId(bookId);
     }
 
-    @Transactional
     @Override
     public boolean saveComment(Long bookId, String comment) {
-        final Book book = bookRepository.findBookById(bookId);
+        final Book book = bookRepository.findById(bookId).orElse(null);
         if (book == null) {
             throw new RuntimeException("Такой книги не существует.");
         }
 
-        final Comment com = commentRepository.saveComment(new Comment(book, comment));
+        final Comment com = commentRepository.save(new Comment(book, comment));
         book.getComments().add(com);
         return true;
     }
@@ -56,7 +41,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     @Override
     public boolean updateComment(Comment comment) {
-        final Comment commentToUpdate = commentRepository.findCommentById(comment.getId());
+        final Comment commentToUpdate = commentRepository.findById(comment.getId()).orElse(null);
         if (commentToUpdate == null) {
             throw new RuntimeException("Такого комментария не существует.");
         }
@@ -65,10 +50,9 @@ public class CommentServiceImpl implements CommentService {
         return true;
     }
 
-    @Transactional
     @Override
-    public boolean deleteCommentById(Long id) {
-        return commentRepository.deleteCommentById(id);
+    public void deleteCommentById(Long id) {
+        commentRepository.deleteById(id);
     }
 
     @Override
