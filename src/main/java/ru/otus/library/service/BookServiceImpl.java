@@ -32,8 +32,13 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public Book findBookById(Long id) {
+        return bookRepository.findById(id).orElseThrow();
+    }
+
+    @Override
     public List<Book> findAllBooks() {
-        return bookRepository.findAllBooks();
+        return bookRepository.findAll();
     }
 
     @Override
@@ -42,15 +47,30 @@ public class BookServiceImpl implements BookService {
         if (author == null) {
             return Collections.emptyList();
         }
-        return bookRepository.findBooksByAuthor(author);
+        return bookRepository.findBooksByAuthorId(author.getId());
+    }
+
+    @Override
+    public List<Book> findBooksByAuthorId(Long authorId) {
+        return bookRepository.findBooksByAuthorId(authorId);
+    }
+
+    @Override
+    public List<Book> findBooksByTitle(String title) {
+        return bookRepository.findBooksByTitle(title);
+    }
+
+    @Override
+    public List<String> findAllTitles() {
+        return bookRepository.findAllTitles();
     }
 
     @Transactional
     @Override
     public boolean saveNewBook(Book book) {
-        Genre genre = genreRepository.findGenreByName(book.getGenre().getName());
+        Genre genre = genreRepository.findByName(book.getGenre().getName());
         if (genre == null) {
-            genre = genreRepository.saveGenre(book.getGenre());
+            genre = genreRepository.save(book.getGenre());
         }
         book.setGenre(genre);
 
@@ -58,7 +78,7 @@ public class BookServiceImpl implements BookService {
         for (Author author : book.getAuthors()) {
             Author checkAuthor = authorRepository.findAuthorByName(author.getName());
             if (checkAuthor == null) {
-                author = authorRepository.saveAuthor(author);
+                author = authorRepository.save(author);
                 authorSet.add(author);
             } else {
                 authorSet.add(checkAuthor);
@@ -70,14 +90,14 @@ public class BookServiceImpl implements BookService {
             return false;
         }
 
-        book = bookRepository.saveBook(book);
+        book = bookRepository.save(book);
         return book.getId() != null;
     }
 
     @Transactional
     @Override
     public boolean updateBookTitleById(final Long id, final String newTitle) {
-        final Book book = bookRepository.findBookById(id);
+        final Book book = bookRepository.findById(id).orElse(null);
         if (book != null) {
             book.setTitle(newTitle);
             return true;
@@ -85,10 +105,9 @@ public class BookServiceImpl implements BookService {
         return false;
     }
 
-    @Transactional
     @Override
-    public boolean deleteBookById(final Long id) {
-        return bookRepository.deleteBookById(id);
+    public void deleteBookById(final Long id) {
+        bookRepository.deleteById(id);
     }
 
     @Override

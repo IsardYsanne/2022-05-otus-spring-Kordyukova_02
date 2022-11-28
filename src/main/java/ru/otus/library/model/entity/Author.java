@@ -20,6 +20,7 @@ public class Author {
 
     @Column(name = "author_name")
     private String name;
+
     @ManyToMany(cascade = CascadeType.PERSIST, mappedBy = "authors")
     private Set<Book> books;
 

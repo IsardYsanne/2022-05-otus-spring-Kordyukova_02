@@ -5,7 +5,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.library.model.entity.Author;
@@ -17,7 +16,6 @@ import java.util.List;
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @DirtiesContext
-@Import({AuthorRepositoryImpl.class})
 public class AuthorRepositoryTest {
 
     private static final String TEST_NAME_1 = "testName";
@@ -25,7 +23,7 @@ public class AuthorRepositoryTest {
     private static final String TEST_NAME_2 = "testName2";
 
     @Autowired
-    private AuthorRepositoryImpl authorRepository;
+    private AuthorRepository authorRepository;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -74,7 +72,7 @@ public class AuthorRepositoryTest {
                 .contains(TEST_NAME_1, TEST_NAME_2);
 
         final Author author = authorRepository.findAuthorByName(TEST_NAME_1);
-        authorRepository.deleteAuthor(author);
+        authorRepository.delete(author);
 
         authors = authorRepository.findAllAuthorsNames();
         assertThat(authors).hasSize(1).contains(TEST_NAME_2).doesNotContain(TEST_NAME_1);

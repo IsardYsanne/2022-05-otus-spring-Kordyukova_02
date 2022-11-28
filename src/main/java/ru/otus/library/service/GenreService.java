@@ -6,11 +6,13 @@ import java.util.List;
 
 public interface GenreService {
 
+    Genre findByName(String name);
+
     List<String> findAllGenres();
 
     boolean saveNewGenre(Genre genre);
 
-    boolean deleteGenre(final String genreName);
+    void deleteGenre(final String genreName);
 
     void deleteAll();
 }

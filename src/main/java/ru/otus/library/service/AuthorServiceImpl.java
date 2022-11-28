@@ -1,7 +1,6 @@
 package ru.otus.library.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.library.model.entity.Author;
 import ru.otus.library.repository.AuthorRepository;
 
@@ -17,19 +16,28 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
+    public Author findAuthorById(Long id) {
+        return authorRepository.findById(id).orElseThrow();
+    }
+
+    @Override
+    public Author findAuthorByName(String name) {
+        return authorRepository.findAuthorByName(name);
+    }
+
+    @Override
     public List<String> findAllAuthorsNames() {
         return authorRepository.findAllAuthorsNames();
     }
 
     @Override
     public void deleteAuthor(final Author author) {
-        authorRepository.deleteAuthor(author);
+        authorRepository.delete(author);
     }
 
-    @Transactional
     @Override
-    public boolean deleteAuthorById(final Long id) {
-        return authorRepository.deleteAuthorById(id);
+    public void deleteAuthorById(final Long id) {
+        authorRepository.deleteById(id);
     }
 
     @Override
@@ -37,10 +45,9 @@ public class AuthorServiceImpl implements AuthorService {
         authorRepository.deleteAll();
     }
 
-    @Transactional
     @Override
     public boolean saveAuthor(final Author author) {
-        Author result = authorRepository.saveAuthor(author);
+        Author result = authorRepository.save(author);
         return result.getId() != null;
     }
 }
