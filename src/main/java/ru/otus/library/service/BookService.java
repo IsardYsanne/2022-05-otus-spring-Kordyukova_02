@@ -6,23 +6,15 @@ import java.util.List;
 
 public interface BookService {
 
-    Book findBookById(final Long id);
+    List<Book> findBooksByAuthorsName(String name);
 
     List<Book> findAllBooks();
 
-    List<Book> findBooksByAuthorsName(final String name);
-
-    List<Book> findBooksByAuthorId(final Long authorId);
-
-    List<Book> findBooksByTitle(final String title);
-
-    List<String> findAllTitles();
-
     boolean saveNewBook(Book book);
 
-    boolean updateBookTitleById(final Long id, final String newTitle);
+    boolean updateBookTitleById(String id, String newTitle);
 
-    void deleteBookById(final Long id);
+    boolean deleteBookById(String bookId);
 
     void deleteAll();
 }

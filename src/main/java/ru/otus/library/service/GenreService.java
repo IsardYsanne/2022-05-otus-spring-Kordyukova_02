@@ -1,18 +1,12 @@
 package ru.otus.library.service;
 
-import ru.otus.library.model.entity.Genre;
-
 import java.util.List;
 
 public interface GenreService {
 
-    Genre findByName(String name);
-
     List<String> findAllGenres();
 
-    boolean saveNewGenre(Genre genre);
-
-    void deleteGenre(final String genreName);
+    void saveGenre(final String genreName, final String bookId);
 
     void deleteAll();
 }

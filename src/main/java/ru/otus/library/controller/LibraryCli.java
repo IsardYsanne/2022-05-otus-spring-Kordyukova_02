@@ -10,37 +10,34 @@ import org.springframework.shell.table.TableModel;
 import org.springframework.shell.table.TableModelBuilder;
 import ru.otus.library.model.entity.Author;
 import ru.otus.library.model.entity.Book;
-import ru.otus.library.model.entity.Comment;
-import ru.otus.library.model.entity.Genre;
 import ru.otus.library.service.AuthorService;
 import ru.otus.library.service.BookService;
 import ru.otus.library.service.CommentService;
 import ru.otus.library.service.GenreService;
 
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.springframework.shell.table.CellMatchers.table;
 
 @ShellComponent
 public class LibraryCli {
 
-    private final AuthorService authorService;
-
     private final BookService bookService;
 
-    private final GenreService genreService;
+    private final AuthorService authorService;
 
     private final CommentService commentService;
 
-    public LibraryCli(AuthorService authorService, BookService bookService, GenreService genreService, CommentService commentService) {
-        this.authorService = authorService;
+    private final GenreService genreService;
+
+    public LibraryCli(BookService bookService, AuthorService authorService, CommentService commentService, GenreService genreService) {
         this.bookService = bookService;
-        this.genreService = genreService;
+        this.authorService = authorService;
         this.commentService = commentService;
+        this.genreService = genreService;
     }
 
     private String getTableFromList(List<Book> books) {
@@ -52,11 +49,18 @@ public class LibraryCli {
                 .addValue("Genre");
         books.forEach(book -> {
             final Optional<String> authors = book.getAuthors().stream().map(Author::getName).reduce((a, b) -> a + ", " + b);
+
+            String genre = book.getGenre();
+            String genreName = "";
+            if (genre != null) {
+                genreName = genre;
+            }
+
             modelBuilder.addRow()
                     .addValue(String.valueOf(book.getId()))
                     .addValue(authors.orElse("Автор не найден."))
                     .addValue(book.getTitle())
-                    .addValue(book.getGenre().getName());
+                    .addValue(genreName);
         });
         final TableModel model = modelBuilder.build();
 
@@ -74,7 +78,7 @@ public class LibraryCli {
     }
 
     @ShellMethod(value = "Update book title", key = "update-title-id")
-    public String updateBookTitleById(@ShellOption(help = "id") Long id,
+    public String updateBookTitleById(@ShellOption(help = "id") String id,
                                       @ShellOption(help = "new title") String newTitle) {
         boolean isSuccessful = bookService.updateBookTitleById(id, newTitle);
         if (isSuccessful) {
@@ -82,11 +86,6 @@ public class LibraryCli {
         } else {
             return "Такой книги не существует.";
         }
-    }
-
-    @ShellMethod(value = "Get book by title", key = "book-title")
-    public Book findBooksByTitle(@ShellOption(help = "book title") String title) {
-        return bookService.findBooksByTitle(title).get(0);
     }
 
     @ShellMethod(value = "Get books by authors names", key = "book-of-author")
@@ -97,12 +96,16 @@ public class LibraryCli {
     @ShellMethod(value = "Add new book, use \",\" as delimiter for authors", key = "add-book")
     public String saveNewBook(@ShellOption(help = "title") String title,
                               @ShellOption(help = "genre") String genreName,
-                              @ShellOption(help = "authors, use \",\" as delimiter ") String authors) {
+                              @ShellOption(help = "authors, use \",\" as delimiter ") String authorsNames) {
 
-        final String[] authorsArr = authors.split(",");
-        final Set<Author> authorSet = Arrays.stream(authorsArr).map(Author::new).collect(Collectors.toSet());
-        final Genre genre = new Genre(genreName);
-        final boolean isSuccessful = bookService.saveNewBook(new Book(title, genre, authorSet));
+        final String[] authorsArr = authorsNames.split(",");
+        final Set<Author> authorSet = new HashSet<>();
+        for (String authorName : authorsArr) {
+            final Author author = new Author(authorName);
+            authorSet.add(author);
+            authorService.saveAuthor(author);
+        }
+        final boolean isSuccessful = bookService.saveNewBook(new Book(title, genreName, authorSet));
         if (isSuccessful) {
             return "Новая книга была добавлена успешно.";
         } else {
@@ -111,19 +114,9 @@ public class LibraryCli {
     }
 
     @ShellMethod(value = "Delete book", key = "delete-book")
-    public String deleteBookById(@ShellOption(help = "id of book to delete") Long id) {
-         bookService.deleteBookById(id);
+    public String deleteBookById(@ShellOption(help = "id of book to delete") String id) {
+        bookService.deleteBookById(id);
          return "Книга успешно удалена.";
-    }
-
-    @ShellMethod(value = "Add new genre", key = "add-genre")
-    public String saveNewGenre(@ShellOption(help = "genre name") String name) {
-        boolean isSuccessful = genreService.saveNewGenre(new Genre(name));
-        if (isSuccessful) {
-            return "Жанр был успешно добавлен.";
-        } else {
-            return "Такой жанр уже существует.";
-        }
     }
 
     @ShellMethod(value = "Show all genres", key = "all-genres")
@@ -131,16 +124,16 @@ public class LibraryCli {
         return genreService.findAllGenres();
     }
 
-    @ShellMethod(value = "Find genre by name", key = "genre-name")
-    public String findGenreByName(@ShellOption(help = "genre name") String genreName) {
-        final Genre genre = genreService.findByName(genreName);
-        return genre.getId() + " " + genre.getName();
+    @ShellMethod(value = "Add new genre", key = "add-genre")
+    public String saveNewGenre(@ShellOption(help = "genre name") String name,
+                               @ShellOption(help = "book id") String id) {
+        genreService.saveGenre(name, id);
+        return "Жанр был успешно добавлен.";
     }
 
-    @ShellMethod(value = "Delete genre", key = "delete-genre")
-    public String deleteGenreByName(@ShellOption(help = "genre to delete") String genreName) {
-        genreService.deleteGenre(genreName);
-        return "Жанр успешно удален.";
+    @ShellMethod(value = "Show all authors names", key = "all-authors-names")
+    public List<String> findAllAuthorsNames() {
+        return authorService.findAllAuthorsNames();
     }
 
     @ShellMethod(value = "Add new author", key = "add-author")
@@ -149,62 +142,28 @@ public class LibraryCli {
         return "Автор успешно добавлен.";
     }
 
-    @ShellMethod(value = "Show all authors names", key = "all-authors-names")
-    public List<String> findAllAuthorsNames() {
-        return authorService.findAllAuthorsNames();
-    }
-
-    @ShellMethod(value = "Find author by Id", key = "author-id")
-    public String findAuthorById(@ShellOption(help = "author id") Long authorId) {
-        final Author author = authorService.findAuthorById(authorId);
-        return author.getName();
-    }
-
-    @ShellMethod(value = "Find author by name", key = "author-name")
-    public String findAuthorByName(@ShellOption(help = "author name") String authorName) {
-        final Author author = authorService.findAuthorByName(authorName);
-        return author.getId() + " " + author.getName();
-    }
-
-    @ShellMethod(value = "Delete author", key = "delete-author")
-    public String deleteAuthorById(@ShellOption(help = "delete author by id") Long id) {
-        authorService.deleteAuthorById(id);
-        return "Автор был успешно удален.";
+    @ShellMethod(value = "Update author", key = "update-author")
+    public String updateAuthor(@ShellOption(help = "author id") String id,
+                               @ShellOption(help = "new author name") String newAuthorName,
+                               @ShellOption(help = "author id") String bookId) {
+        authorService.updateAuthorById(id, newAuthorName, bookId);
+        return "Автор успешно добавлен/обновлен.";
     }
 
     @ShellMethod(value = "Find comments by book id", key = "comment-book")
-    public List<String> findAllCommentsForBook(@ShellOption(help = "book id") Long bookId) {
+    public List<String> findAllCommentsForBook(@ShellOption(help = "book id") String bookId) {
         return commentService.findCommentsByBookId(bookId);
     }
 
     @ShellMethod(value = "Add new comment", key = "add-comment")
-    public String saveNewCommentToBook(@ShellOption(help = "book id") Long bookId,
+    public String saveNewCommentToBook(@ShellOption(help = "book id") String bookId,
+                                       @ShellOption(help = "user name") String userName,
                                        @ShellOption(help = "comment") String comment) {
-        final boolean isSuccessful = commentService.saveComment(bookId, comment);
+        final boolean isSuccessful = commentService.saveComment(bookId, userName, comment);
         if (isSuccessful) {
             return "Комментарий успешно добавлен.";
         } else {
             return "Книга с идентификатором, равным " + bookId + " не существует.";
         }
-    }
-
-    @ShellMethod(value = "Update comment", key = "update-comment")
-    public String updateCommentById(@ShellOption(help = "id") Long id,
-                                    @ShellOption(help = "new comment") String newComment) {
-        final Comment comment = new Comment();
-        comment.setId(id);
-        comment.setCommentText(newComment);
-        final boolean isSuccessful = commentService.updateComment(comment);
-        if (isSuccessful) {
-            return "Комментарий успешно обновлен.";
-        } else {
-            return "Комментарий не существует.";
-        }
-    }
-
-    @ShellMethod(value = "Delete comment", key = "del-comment")
-    public String deleteCommentById(@ShellOption(help = "id of comment to delete") Long id) {
-        commentService.deleteCommentById(id);
-        return "Комментарий успешно удален.";
     }
 }
