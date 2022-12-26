@@ -8,11 +8,13 @@ public interface GenreService {
 
     Genre findByName(String name);
 
-    List<String> findAllGenres();
+    List<Genre> findAllGenres();
 
-    boolean saveNewGenre(Genre genre);
+    Genre saveNewGenre(Genre genre);
 
     void deleteGenre(final String genreName);
+
+    void deleteGenreById(final Long id);
 
     void deleteAll();
 }

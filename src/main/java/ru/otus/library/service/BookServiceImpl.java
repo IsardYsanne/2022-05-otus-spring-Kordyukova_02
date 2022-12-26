@@ -67,7 +67,7 @@ public class BookServiceImpl implements BookService {
 
     @Transactional
     @Override
-    public boolean saveNewBook(Book book) {
+    public Book saveNewBook(Book book) {
         Genre genre = genreRepository.findByName(book.getGenre().getName());
         if (genre == null) {
             genre = genreRepository.save(book.getGenre());
@@ -79,30 +79,26 @@ public class BookServiceImpl implements BookService {
             Author checkAuthor = authorRepository.findAuthorByName(author.getName());
             if (checkAuthor == null) {
                 author = authorRepository.save(author);
+                author.getBooks().add(book);
                 authorSet.add(author);
             } else {
+                checkAuthor.getBooks().add(book);
                 authorSet.add(checkAuthor);
             }
         }
         book.setAuthors(authorSet);
 
-        if (isBookDuplicate(book)) {
-            return false;
-        }
-
-        book = bookRepository.save(book);
-        return book.getId() != null;
+        return bookRepository.save(book);
     }
 
-    @Transactional
     @Override
-    public boolean updateBookTitleById(final Long id, final String newTitle) {
+    public Book updateBookTitleById(final Long id, final String newTitle) {
         final Book book = bookRepository.findById(id).orElse(null);
         if (book != null) {
             book.setTitle(newTitle);
-            return true;
         }
-        return false;
+        saveNewBook(book);
+        return book;
     }
 
     @Override
@@ -113,18 +109,5 @@ public class BookServiceImpl implements BookService {
     @Override
     public void deleteAll() {
         bookRepository.deleteAll();
-    }
-
-    private boolean isBookDuplicate(Book book) {
-        List<Book> booksWithSameTitle = bookRepository.findBooksByTitle(book.getTitle());
-        if (!booksWithSameTitle.isEmpty()) {
-            for (Book bookFromDB : booksWithSameTitle) {
-                if (book.getGenre().equals(bookFromDB.getGenre())
-                        && book.getAuthors().containsAll(bookFromDB.getAuthors())) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }

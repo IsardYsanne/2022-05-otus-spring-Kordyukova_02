@@ -1,5 +1,9 @@
 package ru.otus.library.model.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +16,9 @@ import java.util.Set;
 
 @Entity
 @Table(name = "authors")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Author {
 
     @Id
@@ -30,33 +37,6 @@ public class Author {
 
     public Author(Set<Book> books, String name) {
         this.books = books;
-        this.name = name;
-    }
-
-    public Author() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Set<Book> getBooks() {
-        return books;
-    }
-
-    public void setBooks(Set<Book> books) {
-        this.books = books;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
         this.name = name;
     }
 

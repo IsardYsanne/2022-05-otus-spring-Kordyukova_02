@@ -1,9 +1,13 @@
 package ru.otus.library.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 import ru.otus.library.model.entity.Genre;
 
-public interface GenreRepository extends JpaRepository<Genre, Long> {
+import java.util.List;
+
+public interface GenreRepository extends CrudRepository<Genre, Long> {
 
     Genre findByName(final String genreName);
+
+    List<Genre> findAll();
 }

@@ -5,7 +5,6 @@ import ru.otus.library.model.entity.Genre;
 import ru.otus.library.repository.GenreRepository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class GenreServiceImpl implements GenreService {
@@ -22,14 +21,13 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    public List<String> findAllGenres() {
-        return genreRepository.findAll().stream().map(Genre::getName).collect(Collectors.toList());
+    public List<Genre> findAllGenres() {
+        return genreRepository.findAll();
     }
 
     @Override
-    public boolean saveNewGenre(Genre genre) {
-        genre = genreRepository.save(genre);
-        return genre.getId() != null;
+    public Genre saveNewGenre(Genre genre) {
+        return genreRepository.save(genre);
     }
 
     @Override
@@ -39,6 +37,11 @@ public class GenreServiceImpl implements GenreService {
             throw new RuntimeException("Такого жанра не существует.");
         }
         genreRepository.delete(genre);
+    }
+
+    @Override
+    public void deleteGenreById(Long id) {
+        genreRepository.deleteById(id);
     }
 
     @Override

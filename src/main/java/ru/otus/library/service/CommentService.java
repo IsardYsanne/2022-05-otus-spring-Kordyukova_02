@@ -8,9 +8,11 @@ public interface CommentService {
 
     List<String> findCommentsByBookId(final Long bookId);
 
-    boolean saveComment(final Long bookId, final String comment);
+    List<Comment> findAllFullComments(Long id);
 
-    boolean updateComment(final Comment comment);
+    Comment saveComment(final Long bookId, final String comment);
+
+    Comment updateComment(final Comment comment);
 
     void deleteCommentById(final Long id);
 

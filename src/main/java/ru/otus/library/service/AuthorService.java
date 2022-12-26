@@ -12,7 +12,9 @@ public interface AuthorService {
 
     List<String> findAllAuthorsNames();
 
-    boolean saveAuthor(final Author author);
+    List<Author> findAllAuthors();
+
+    Author saveAuthor(final Author author);
 
     void deleteAuthor(final Author author);
 
