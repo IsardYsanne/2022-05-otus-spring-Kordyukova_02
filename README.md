@@ -45,4 +45,11 @@
 <br>
 <br>
 <br>
+Четвертое задание:
+Использовать Spring Data MongoDB репозитории, а если не хватает функциональности, то и *Operations.
+<br>
+Hibernate, равно, как и JPA, и spring-boot-starter-data-jpa не должно остаться в зависимостях
+<br>
+<br>
+<br>
 Выполнила: Kordyukova Galina

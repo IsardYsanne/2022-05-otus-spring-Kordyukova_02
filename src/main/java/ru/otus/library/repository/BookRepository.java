@@ -1,19 +1,24 @@
 package ru.otus.library.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import ru.otus.library.model.entity.Book;
 
 import java.util.List;
 
-public interface BookRepository extends JpaRepository<Book, Long> {
+public interface BookRepository extends MongoRepository<Book, String> {
 
-    @Query("SELECT b FROM Book b JOIN b.authors a WHERE a.id = :id")
-    List<Book> findBooksByAuthorId(@Param(value = "id") Long authorId);
+    List<Book> findAll();
 
-    List<Book> findBooksByTitle(final String title);
+    Book findBookById(String id);
 
-    @Query("SELECT b.title FROM Book b")
-    List<String> findAllTitles();
+    List<Book> findBooksByAuthors(String authorName);
+
+    @Query(value = "{'title':'?0'}")
+    List<Book> findBooksByTitle(String title);
+
+    @Query(value = "{'id':'?0'}", fields = "{'comments': 1}")
+    Book findBookWithCommentsById(String id);
+
+    int deleteBookById(String id);
 }

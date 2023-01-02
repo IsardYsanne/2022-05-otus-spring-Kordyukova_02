@@ -1,8 +1,8 @@
 package ru.otus.library.service;
 
 import org.springframework.stereotype.Service;
-import ru.otus.library.model.entity.Genre;
-import ru.otus.library.repository.GenreRepository;
+import ru.otus.library.model.entity.Book;
+import ru.otus.library.repository.BookRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,39 +10,30 @@ import java.util.stream.Collectors;
 @Service
 public class GenreServiceImpl implements GenreService {
 
-    private final GenreRepository genreRepository;
+    private BookRepository bookRepository;
 
-    public GenreServiceImpl(final GenreRepository genreRepository) {
-        this.genreRepository = genreRepository;
-    }
-
-    @Override
-    public Genre findByName(String name) {
-        return genreRepository.findByName(name);
+    public GenreServiceImpl(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
     }
 
     @Override
     public List<String> findAllGenres() {
-        return genreRepository.findAll().stream().map(Genre::getName).collect(Collectors.toList());
+        return bookRepository.findAll().stream().map(Book::getGenre).collect(Collectors.toList());
     }
 
     @Override
-    public boolean saveNewGenre(Genre genre) {
-        genre = genreRepository.save(genre);
-        return genre.getId() != null;
-    }
-
-    @Override
-    public void deleteGenre(final String genreName) {
-        final Genre genre = genreRepository.findByName(genreName);
-        if (genre == null) {
-            throw new RuntimeException("Такого жанра не существует.");
+    public void saveGenre(String genreName, String bookId) {
+        Book book = bookRepository.findBookById(bookId);
+        if (book == null) {
+            return;
         }
-        genreRepository.delete(genre);
+
+        book.setGenre(genreName);
+        bookRepository.save(book);
     }
 
     @Override
     public void deleteAll() {
-        genreRepository.deleteAll();
+        bookRepository.findAll().forEach(book -> book.setGenre(null));
     }
 }
