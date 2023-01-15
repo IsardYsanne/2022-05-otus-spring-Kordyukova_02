@@ -1,0 +1,166 @@
+@font-face {
+  font-family: "SBSansText";
+  src: url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.eot");
+  src: url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.eot?#iefix") format("embedded-opentype"),
+  url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.woff2") format("woff2"),
+  url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.woff") format("woff"),
+  url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.ttf") format("truetype"),
+  url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.svg#SB Sans Text") format("svg");
+}
+
+html {
+  background: url("../img/photo.jpg");
+  background-size: 100% auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px;
+}
+
+.allBooks_container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.addBookBtn_container {
+  display: flex;
+  align-self: flex-end;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  margin-left: 55px;
+  margin-top: 20px;
+}
+
+.addAuthorBtn {
+  margin-left: 30px;
+  cursor: pointer;
+  border: none;
+  background-color: #4a9181;
+  font-weight: bold;
+  color: white;
+  width: 200px;
+  padding: 15px;
+  font-size: 18px;
+  border-radius: 15px;
+}
+
+.addAuthorBtn:hover {
+  background-color: #196744;
+  transition: all 0.3s ease 0s;
+}
+
+.addBookBtn {
+  cursor: pointer;
+  border: none;
+  background-color: #5da573;
+  font-weight: bold;
+  color: white;
+  width: 200px;
+  padding: 15px;
+  font-size: 18px;
+  border-radius: 15px;
+}
+
+.addBookBtn:hover {
+  background-color: #3d6e4c;
+  transition: all 0.3s ease 0s;
+}
+
+.addGenreBtn {
+  cursor: pointer;
+  border: none;
+  background-color: #4e4677;
+  font-weight: bold;
+  color: white;
+  width: 200px;
+  padding: 15px;
+  font-size: 18px;
+  border-radius: 15px;
+  margin-left: 30px;
+}
+
+.addGenreBtn:hover {
+  background-color: #2f2951;
+  transition: all 0.3s ease 0s;
+}
+
+.formWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.addBookForm {
+  width: 500px;
+  height: 100%;
+  background: #dad6e0;
+  padding: 10px 20px;
+}
+
+.formTitle {
+  font-size: 25px;
+  font-weight: bold;
+  text-align: center;
+  background-color: #1d163e;
+  border-radius: 15px;
+  color: #f7eeff;
+}
+
+.formLabel {
+  padding: 20px 10px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #1b1b41;
+}
+
+.inputForm {
+  border: none;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.btn_container {
+  margin-top: 30px;
+  margin-bottom: 20px;
+  display: inline-flex;
+  justify-content: space-between;
+}
+
+.btnSubmit {
+  cursor: pointer;
+  width: 170px;
+  border: none;
+  background-color: #5da573;
+  color: white;
+  font-size: 18px;
+  border-radius: 15px;
+  font-weight: bold;
+  height: 40px;
+}
+
+.btnExit {
+  cursor: pointer;
+  width: 170px;
+  border: none;
+  background-color: #601732;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 15px;
+}
+
+.btnSubmit:hover {
+  background-color: #196744;
+  transition: all 0.3s ease 0s;
+}
+
+.btnSubmit:disabled {
+  background-color: #9b9b9b;
+  pointer-events: none;
+  transition: all 0.3s ease 0s;
+}
+
+.btnExit:hover {
+  background-color: #260612;
+  transition: all 0.3s ease 0s;
+}

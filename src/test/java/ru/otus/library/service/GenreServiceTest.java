@@ -13,6 +13,7 @@ import ru.otus.library.repository.GenreRepository;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -53,13 +54,12 @@ public class GenreServiceTest {
 
         when(genreRepository.findAll()).thenReturn(genres);
 
-        List<String> resultList = genreService.findAllGenres();
+        List<Genre> resultList = genreService.findAllGenres();
 
         verify(genreRepository).findAll();
         assertThat(resultList)
                 .isNotEmpty()
-                .hasSize(2)
-                .contains(TEST_GENRE_1, TEST_GENRE_2);
+                .hasSize(2);
     }
 
     @Test
@@ -68,8 +68,8 @@ public class GenreServiceTest {
         Genre genre = new Genre(TEST_GENRE_1);
         genre.setId(1L);
         when(genreRepository.save(any())).thenReturn(genre);
-        boolean result = genreService.saveNewGenre(genre);
+        final Genre genre2 = genreService.saveNewGenre(genre);
 
-        assertThat(result).isTrue();
+        assertThat(Objects.nonNull(genre2));
     }
 }

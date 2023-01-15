@@ -18,9 +18,9 @@ public interface BookService {
 
     List<String> findAllTitles();
 
-    boolean saveNewBook(Book book);
+    Book saveNewBook(Book book);
 
-    boolean updateBookTitleById(final Long id, final String newTitle);
+    Book updateBookTitleById(final Long id, final String newTitle);
 
     void deleteBookById(final Long id);
 

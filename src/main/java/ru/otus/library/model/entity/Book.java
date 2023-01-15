@@ -1,5 +1,9 @@
 package ru.otus.library.model.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -16,6 +20,9 @@ import java.util.Set;
 
 @Entity
 @Table(name = "books")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Book {
 
     @Id
@@ -36,53 +43,10 @@ public class Book {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "book")
     private Set<Comment> comments;
 
-    public Book() {
-    }
-
     public Book(String title, Genre genre, Set<Author> authors) {
         this.title = title;
         this.genre = genre;
         this.authors = authors;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public Genre getGenre() {
-        return genre;
-    }
-
-    public void setGenre(Genre genre) {
-        this.genre = genre;
-    }
-
-    public Set<Author> getAuthors() {
-        return authors;
-    }
-
-    public void setAuthors(Set<Author> authors) {
-        this.authors = authors;
-    }
-
-    public Set<Comment> getComments() {
-        return comments;
-    }
-
-    public void setComments(Set<Comment> comments) {
-        this.comments = comments;
     }
 
     @Override

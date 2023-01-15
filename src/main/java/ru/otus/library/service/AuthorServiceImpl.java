@@ -31,6 +31,11 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
+    public List<Author> findAllAuthors() {
+        return authorRepository.findAll();
+    }
+
+    @Override
     public void deleteAuthor(final Author author) {
         authorRepository.delete(author);
     }
@@ -46,8 +51,7 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public boolean saveAuthor(final Author author) {
-        Author result = authorRepository.save(author);
-        return result.getId() != null;
+    public Author saveAuthor(final Author author) {
+        return authorRepository.save(author);
     }
 }

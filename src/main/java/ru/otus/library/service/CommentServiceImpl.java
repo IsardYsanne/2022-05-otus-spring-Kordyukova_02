@@ -1,7 +1,6 @@
 package ru.otus.library.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Comment;
 import ru.otus.library.repository.BookRepository;
@@ -27,7 +26,12 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public boolean saveComment(Long bookId, String comment) {
+    public List<Comment> findAllFullComments(Long id) {
+        return commentRepository.findAllById(id);
+    }
+
+    @Override
+    public Comment saveComment(Long bookId, String comment) {
         final Book book = bookRepository.findById(bookId).orElse(null);
         if (book == null) {
             throw new RuntimeException("Такой книги не существует.");
@@ -35,19 +39,18 @@ public class CommentServiceImpl implements CommentService {
 
         final Comment com = commentRepository.save(new Comment(book, comment));
         book.getComments().add(com);
-        return true;
+        return com;
     }
 
-    @Transactional
     @Override
-    public boolean updateComment(Comment comment) {
+    public Comment updateComment(Comment comment) {
         final Comment commentToUpdate = commentRepository.findById(comment.getId()).orElse(null);
         if (commentToUpdate == null) {
             throw new RuntimeException("Такого комментария не существует.");
         }
         commentToUpdate.setCommentDate(comment.getCommentDate());
         commentToUpdate.setCommentText(comment.getCommentText());
-        return true;
+        return commentToUpdate;
     }
 
     @Override

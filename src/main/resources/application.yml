@@ -9,6 +9,9 @@ spring:
 #  jpa:
 #    generate-ddl: true
 
+server:
+  port: 8080
+
 logging:
   level:
     root: error
