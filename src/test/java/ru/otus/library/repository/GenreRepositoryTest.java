@@ -1,21 +1,20 @@
 package ru.otus.library.repository;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import ru.otus.library.model.entity.Genre;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@DataJpaTest
-@DirtiesContext
+@DataMongoTest
 public class GenreRepositoryTest {
 
     private static final String TEST_NAME_1 = "testName";
@@ -25,63 +24,90 @@ public class GenreRepositoryTest {
     @Autowired
     private GenreRepository genreRepository;
 
-    @Autowired
-    private TestEntityManager entityManager;
+    @Before
+    public void init() {
+        genreRepository.deleteAll().block();
+    }
 
-    private Genre addTestGenre(String testName) {
+    private Mono<Genre> addTestGenre(String testName) {
         Genre genre = new Genre();
         genre.setName(testName);
-        genre = entityManager.persist(genre);
-        return genre;
+        return genreRepository.save(genre);
     }
 
     @Test
     public void addGenreTest() {
-        addTestGenre(TEST_NAME_1);
-        List<Genre> genres = genreRepository.findAll();
-        assertThat(genres).isNotEmpty();
+        addTestGenre(TEST_NAME_1).block();
+
+        Flux<Genre> genres = genreRepository.findAll();
+
+        StepVerifier.create(genres)
+                .assertNext(genre -> {
+                    assertThat(genre.getId()).isNotNull();
+                    assertThat(genre.getName()).isEqualTo(TEST_NAME_1);
+                })
+                .expectComplete()
+                .verify();
     }
 
     @Test
     public void getAllGenresTest() {
-        List<Genre> genres = genreRepository.findAll();
-        assertThat(genres).isEmpty();
+        Genre genre = addTestGenre(TEST_NAME_1).block();
+        Genre genre2 = addTestGenre(TEST_NAME_2).block();
 
-        final Genre genre = addTestGenre(TEST_NAME_1);
-        final Genre genre2 = addTestGenre(TEST_NAME_2);
-
-        genres = genreRepository.findAll();
-        assertThat(genres).hasSize(2).contains(genre, genre2);
+        Flux<Genre> genres = genreRepository.findAll();
+        StepVerifier
+                .create(genres)
+                .expectNext(genre, genre2)
+                .verifyComplete();
     }
 
     @Test
     public void getGenreByNameTest() {
-        final Genre genre1 = addTestGenre(TEST_NAME_1);
-        final Genre genre2 = genreRepository.findByName(TEST_NAME_1);
+        Genre genre1 = addTestGenre(TEST_NAME_1).block();
+        Genre genre2 = genreRepository.findGenreByName(TEST_NAME_1).block();
         assertThat(genre2).isEqualTo(genre1);
     }
 
     @Test
     public void deleteGenreTest() {
-        final Genre genre = addTestGenre(TEST_NAME_1);
-        final Genre genre2 = addTestGenre(TEST_NAME_2);
-        List<Genre> genres = genreRepository.findAll();
-        assertThat(genres).hasSize(2).contains(genre, genre2);
+        Genre genre = addTestGenre(TEST_NAME_1).block();
+        Genre genre2 = addTestGenre(TEST_NAME_2).block();
+        Flux<Genre> genres = genreRepository.findAll();
+        StepVerifier
+                .create(genres)
+                .expectNext(genre, genre2)
+                .verifyComplete();
 
-        genreRepository.delete(genre);
+        Mono<Long> result = genreRepository.deleteGenreByName(TEST_NAME_1);
+        long res = result.block();
+        assertThat(res > 0).isTrue();
+
         genres = genreRepository.findAll();
-        assertThat(genres).hasSize(1).contains(genre2).doesNotContain(genre);
+        StepVerifier.create(genres)
+                .assertNext(gen -> {
+                    assertThat(gen.getId()).isNotNull();
+                    assertThat(gen.getName()).isEqualTo(TEST_NAME_2);
+                })
+                .expectComplete()
+                .verify();
     }
 
     @Test
     public void deleteAllTest() {
-        final Genre genre = addTestGenre(TEST_NAME_1);
-        final Genre genre2 = addTestGenre(TEST_NAME_2);
-        List<Genre> genres = genreRepository.findAll();
-        assertThat(genres).hasSize(2).contains(genre, genre2);
+        Genre genre = addTestGenre(TEST_NAME_1).block();
+        Genre genre2 = addTestGenre(TEST_NAME_2).block();
+        Flux<Genre> genres = genreRepository.findAll();
+        StepVerifier
+                .create(genres)
+                .expectNext(genre, genre2)
+                .verifyComplete();
 
-        genreRepository.deleteAll();
-        genres = genreRepository.findAll();
-        assertThat(genres).isEmpty();
+        genreRepository.deleteAll().block();
+
+        Flux<Genre> genres2 = genreRepository.findAll();
+        StepVerifier
+                .create(genres2)
+                .verifyComplete();
     }
 }

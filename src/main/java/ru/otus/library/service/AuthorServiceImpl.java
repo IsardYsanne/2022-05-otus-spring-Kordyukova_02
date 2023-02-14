@@ -1,10 +1,10 @@
 package ru.otus.library.service;
 
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.library.model.entity.Author;
 import ru.otus.library.repository.AuthorRepository;
-
-import java.util.List;
 
 @Service
 public class AuthorServiceImpl implements AuthorService {
@@ -16,42 +16,35 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public Author findAuthorById(Long id) {
-        return authorRepository.findById(id).orElseThrow();
+    public Flux<String> findAllAuthorsNames() {
+        return authorRepository.findAll().map(Author::getName);
     }
 
     @Override
-    public Author findAuthorByName(String name) {
-        return authorRepository.findAuthorByName(name);
-    }
-
-    @Override
-    public List<String> findAllAuthorsNames() {
-        return authorRepository.findAllAuthorsNames();
-    }
-
-    @Override
-    public List<Author> findAllAuthors() {
+    public Flux<Author> findAllAuthors() {
         return authorRepository.findAll();
     }
 
     @Override
-    public void deleteAuthor(final Author author) {
-        authorRepository.delete(author);
+    public Mono<Author> saveAuthor(Author author) {
+        return authorRepository.findAuthorByName(author.getName()).switchIfEmpty(authorRepository.save(author));
     }
 
     @Override
-    public void deleteAuthorById(final Long id) {
-        authorRepository.deleteById(id);
+    public Mono<Author> updateAuthorById(String authorId, String newAuthorName) {
+        return authorRepository.findAuthorById(authorId).map(author -> {
+            author.setName(newAuthorName);
+            return author;
+        }).flatMap(authorRepository::save).switchIfEmpty(Mono.error(new RuntimeException()));
+    }
+
+    @Override
+    public Mono<Long> deleteAuthorById(String id) {
+        return authorRepository.deleteAuthorById(id);
     }
 
     @Override
     public void deleteAll() {
         authorRepository.deleteAll();
-    }
-
-    @Override
-    public Author saveAuthor(final Author author) {
-        return authorRepository.save(author);
     }
 }

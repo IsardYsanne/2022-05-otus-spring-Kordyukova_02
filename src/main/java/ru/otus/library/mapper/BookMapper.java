@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Component
 public class BookMapper {
 
-    public Book dtoToBook(BookDto bookDto) {
+    public static Book dtoToBook(BookDto bookDto) {
         final Set<Author> authors = authorsToSet(bookDto.getAuthors());
         final Genre genre = new Genre(bookDto.getGenre());
         return new Book(bookDto.getTitle(), genre, authors);
@@ -69,7 +69,7 @@ public class BookMapper {
         return comments.stream().map(BookMapper::commentToDto).collect(Collectors.toList());
     }
 
-    private Set<Author> authorsToSet(String authors) {
+    private static Set<Author> authorsToSet(String authors) {
         final String[] authorsArr = authors.split(",");
         return Arrays.stream(authorsArr).map(s -> new Author(s.trim())).collect(Collectors.toSet());
     }

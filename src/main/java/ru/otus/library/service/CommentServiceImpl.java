@@ -1,12 +1,12 @@
 package ru.otus.library.service;
 
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Comment;
 import ru.otus.library.repository.BookRepository;
 import ru.otus.library.repository.CommentRepository;
-
-import java.util.List;
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -21,41 +21,40 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public List<String> findCommentsByBookId(Long bookId) {
-        return commentRepository.findCommentsByBookId(bookId);
+    public Flux<String> findAllCommentsTexts(String bookId) {
+        return commentRepository.findCommentsByBookId(bookId).map(Comment::getCommentText);
     }
 
     @Override
-    public List<Comment> findAllFullComments(Long id) {
-        return commentRepository.findAllById(id);
+    public Flux<Comment> findAllComments(String id) {
+        return commentRepository.findCommentsByBookId(id);
     }
 
     @Override
-    public Comment saveComment(Long bookId, String comment) {
-        final Book book = bookRepository.findById(bookId).orElse(null);
-        if (book == null) {
-            throw new RuntimeException("Такой книги не существует.");
-        }
-
-        final Comment com = commentRepository.save(new Comment(book, comment));
-        book.getComments().add(com);
-        return com;
+    public Mono<Comment> saveComment(String bookId, String comment) {
+        Mono<Book> bookMono = bookRepository.findBookById(bookId).map(Book::new);
+        return commentRepository.save(new Comment(bookMono.block(), comment));
     }
 
     @Override
-    public Comment updateComment(Comment comment) {
-        final Comment commentToUpdate = commentRepository.findById(comment.getId()).orElse(null);
-        if (commentToUpdate == null) {
-            throw new RuntimeException("Такого комментария не существует.");
-        }
-        commentToUpdate.setCommentDate(comment.getCommentDate());
-        commentToUpdate.setCommentText(comment.getCommentText());
-        return commentToUpdate;
+    public Mono<Comment> updateComment(Mono<Comment> comment) {
+        return commentRepository.save(comment);
     }
 
     @Override
-    public void deleteCommentById(Long id) {
-        commentRepository.deleteById(id);
+    public Mono<Comment> updateComment(String id, String newComment) {
+        return commentRepository.findById(id)
+                .flatMap(comm -> {
+                    comm.setCommentText(newComment);
+                    return Mono.just(comm);
+                })
+                .flatMap(commentRepository::save)
+                .switchIfEmpty(Mono.error(new RuntimeException()));
+    }
+
+    @Override
+    public Mono<Long> deleteCommentById(String id) {
+        return commentRepository.deleteCommentById(id);
     }
 
     @Override

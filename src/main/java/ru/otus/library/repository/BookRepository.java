@@ -1,21 +1,23 @@
 package ru.otus.library.repository;
 
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.library.model.entity.Book;
 
-import java.util.List;
+@Repository
+public interface BookRepository extends ReactiveMongoRepository<Book, String> {
 
-public interface BookRepository extends CrudRepository<Book, Long> {
+    Flux<Book> findAll();
 
-    List<Book> findAll();
+    Flux<Book> findAllByAuthorsId(String authorId);
 
-    @Query("SELECT b FROM Book b JOIN b.authors a WHERE a.id = :id")
-    List<Book> findBooksByAuthorId(@Param(value = "id") Long authorId);
+    Flux<Book> findBooksByTitle(String title);
 
-    List<Book> findBooksByTitle(final String title);
+    Mono<Book> findBookById(String id);
 
-    @Query("SELECT b.title FROM Book b")
-    List<String> findAllTitles();
+    Mono<Book> save(Mono<Book> book);
+
+    Mono<Long> deleteBookById(String id);
 }

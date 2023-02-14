@@ -11,7 +11,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class BookDto {
 
-    private Long id;
+    private String id;
 
     private String authors;
 

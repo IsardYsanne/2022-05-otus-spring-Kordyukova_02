@@ -1,11 +1,13 @@
 package ru.otus.library.repository;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.library.model.entity.Author;
 import ru.otus.library.model.entity.Book;
@@ -15,12 +17,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 @RunWith(SpringRunner.class)
-@DataJpaTest
-@DirtiesContext
+@DataMongoTest
 public class BookRepositoryTest {
 
     private static final String TEST_TITLE_1 = "testTitle";
@@ -43,39 +43,54 @@ public class BookRepositoryTest {
     private BookRepository bookRepository;
 
     @Autowired
-    private TestEntityManager entityManager;
+    private AuthorRepository authorRepository;
 
-    private Book saveTestBookToDataBase(String title, String authorName, String genreName) {
+    @Autowired
+    private GenreRepository genreRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
+
+    @Before
+    public void init() {
+        bookRepository.deleteAll().block();
+        authorRepository.deleteAll().block();
+        genreRepository.deleteAll().block();
+    }
+
+    private Mono<Book> saveTestBookToDataBase(String title, String authorName, String genreName) {
         Author author = new Author();
         author.setName(authorName);
-        author = entityManager.persist(author);
-
+        Mono<Author> authorMono = authorRepository.save(author);
         Set<Author> authors = new HashSet<>();
-        authors.add(author);
+        authors.add(authorMono.block());
 
-        final Genre genre = saveTestGenre(genreName);
+        Genre genre = saveTestGenre(genreName).block();
 
-        final Book book = new Book();
+        Book book = new Book();
         book.setTitle(title);
         book.setAuthors(authors);
         book.setGenre(genre);
 
-        return entityManager.persist(book);
+        return bookRepository.save(book);
     }
 
     @Test
     public void findAllBooksTest() {
-        List<Book> books = bookRepository.findAll();
-        assertThat(books).isEmpty();
+        Flux<Book> books = bookRepository.findAll();
+        StepVerifier
+                .create(books)
+                .verifyComplete();
 
-        final Book book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        final Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
+        Book book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1).block();
+        Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2).block();
 
-        books = bookRepository.findAll();
-        assertThat(books)
-                .isNotEmpty()
-                .hasSize(2)
-                .contains(book1, book2);
+        Flux<Book> books2 = bookRepository.findAll();
+        StepVerifier
+                .create(books2)
+                .expectNext(book1, book2)
+                .expectComplete()
+                .verify();
     }
 
     @Test
@@ -83,100 +98,125 @@ public class BookRepositoryTest {
         saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
         saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
 
-        final List<String> titles = bookRepository.findAllTitles();
+        Flux<String> titles = bookRepository.findAll().map(Book::getTitle);
 
-        assertThat(titles)
-                .hasSize(2)
-                .contains(TEST_TITLE_1, TEST_TITLE_2);
+        StepVerifier.create(titles).expectComplete().verify();
     }
 
     @Test
     public void findBookByAuthorIdTest() {
-        final Book expectedBook = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
+        Book expectedBook = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1).block();
+        saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2).block();
         Iterator<Author> iterator = expectedBook.getAuthors().iterator();
         Author author = iterator.next();
 
-        final List<Book> books = bookRepository.findBooksByAuthorId(author.getId());
-        final Book resultBook = books.get(0);
+        Flux<Book> books = bookRepository.findAllByAuthorsId(author.getId());
 
-        assertThat(resultBook).isEqualTo(expectedBook);
+        Flux<Book> booksAll = bookRepository.findAll();
+        StepVerifier
+                .create(booksAll)
+                .expectNextCount(2)
+                .expectComplete()
+                .verify();
+
+        StepVerifier
+                .create(books)
+                .assertNext(book -> assertThat(book).isEqualTo(expectedBook))
+                .expectComplete()
+                .verify();
     }
 
     @Test
     public void findBookByIdTest() {
-        final Book expectedBook = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
+        Book expectedBook = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1).block();
+        saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2).block();
 
-        final Long id = expectedBook.getId();
-        final Book resultBook = bookRepository.findById(id).orElseThrow();
+        String id = expectedBook.getId();
+        Mono<Book> resultBook = bookRepository.findBookById(id);
 
-        assertThat(resultBook).isEqualTo(expectedBook);
+        StepVerifier
+                .create(resultBook)
+                .assertNext(book -> assertThat(book).isEqualTo(expectedBook))
+                .expectComplete()
+                .verify();
     }
 
     @Test
     public void findBookByTitleTest() {
-        final Book expectedBook1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        final Book expectedBook2 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_3, TEST_GENRE_3);
+        final Book expectedBook1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1).block();
+        final Book expectedBook2 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_3, TEST_GENRE_3).block();
         saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
 
-        final List<Book> resultBooks = bookRepository.findBooksByTitle(TEST_TITLE_1);
-
-        assertThat(resultBooks)
-                .isNotEmpty()
-                .hasSize(2)
-                .contains(expectedBook1, expectedBook2);
+        Flux<Book> resultBooks = bookRepository.findBooksByTitle(TEST_TITLE_1);
+        StepVerifier
+                .create(resultBooks)
+                .expectNext(expectedBook1, expectedBook2)
+                .expectComplete()
+                .verify();
     }
 
-    private Genre saveTestGenre(String testName) {
+    private Mono<Genre> saveTestGenre(String testName) {
         Genre genre = new Genre();
         genre.setName(testName);
-        return entityManager.persist(genre);
+        return genreRepository.save(genre);
     }
 
     @Test
     public void saveNewBookTest() {
-        final Book book = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        final List<Book> books = bookRepository.findAll();
+        saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1).block();
 
-        assertThat(books).hasSize(1).contains(book);
+        Flux<Book> books = bookRepository.findAll();
+
+        StepVerifier
+                .create(books)
+                .assertNext(book -> {
+                    assertThat(book.getId()).isNotNull();
+                    assertThat(book.getTitle()).isEqualTo(TEST_TITLE_1);
+                })
+                .expectComplete()
+                .verify();
     }
 
     @Test
     public void deleteBookByIdTest() {
-        final Book book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        final Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
+        Book book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1).block();
+        Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2).block();
 
-        List<Book> books = bookRepository.findAll();
-        assertThat(books)
-                .isNotEmpty()
-                .hasSize(2)
-                .contains(book1, book2);
+        Flux<Book> books = bookRepository.findAll();
+        StepVerifier
+                .create(books)
+                .expectNext(book1, book2)
+                .expectComplete()
+                .verify();
 
-        bookRepository.deleteById(book1.getId());
+        Long result = bookRepository.deleteBookById(book1.getId()).block();
+        assertThat(result > 0).isTrue();
 
-        books = bookRepository.findAll();
-        assertThat(books)
-                .isNotEmpty()
-                .hasSize(1)
-                .contains(book2)
-                .doesNotContain(book1);
+        Flux<Book> books2 = bookRepository.findAll();
+        StepVerifier
+                .create(books2)
+                .assertNext(book -> assertThat(book).isEqualTo(book2))
+                .expectComplete()
+                .verify();
     }
 
     @Test
-    public void deleteAllTest() {
-        final Book book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        final Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
+    public void deleteAllTest() throws Exception {
+        Book book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1).block();
+        Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2).block();
 
-        List<Book> books = bookRepository.findAll();
-        assertThat(books)
-                .isNotEmpty()
-                .hasSize(2)
-                .contains(book1, book2);
+        Flux<Book> books = bookRepository.findAll();
+        StepVerifier
+                .create(books)
+                .expectNext(book1, book2)
+                .expectComplete()
+                .verify();
 
-        bookRepository.deleteAll();
+        bookRepository.deleteAll().block();
 
-        books = bookRepository.findAll();
-        assertThat(books).isEmpty();
+        Flux<Book> books2 = bookRepository.findAll();
+        StepVerifier
+                .create(books2)
+                .verifyComplete();
     }
 }

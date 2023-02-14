@@ -1,10 +1,10 @@
 package ru.otus.library.service;
 
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.library.model.entity.Genre;
 import ru.otus.library.repository.GenreRepository;
-
-import java.util.List;
 
 @Service
 public class GenreServiceImpl implements GenreService {
@@ -16,32 +16,18 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    public Genre findByName(String name) {
-        return genreRepository.findByName(name);
-    }
-
-    @Override
-    public List<Genre> findAllGenres() {
+    public Flux<Genre> findAllGenres() {
         return genreRepository.findAll();
     }
 
     @Override
-    public Genre saveNewGenre(Genre genre) {
-        return genreRepository.save(genre);
+    public Mono<Genre> saveGenre(Genre genre) {
+        return genreRepository.findGenreByName(genre.getName()).switchIfEmpty(genreRepository.save(genre));
     }
 
     @Override
-    public void deleteGenre(final String genreName) {
-        final Genre genre = genreRepository.findByName(genreName);
-        if (genre == null) {
-            throw new RuntimeException("Такого жанра не существует.");
-        }
-        genreRepository.delete(genre);
-    }
-
-    @Override
-    public void deleteGenreById(Long id) {
-        genreRepository.deleteById(id);
+    public Mono<Long> deleteGenreByName(String genreName) {
+        return genreRepository.deleteGenreByName(genreName);
     }
 
     @Override

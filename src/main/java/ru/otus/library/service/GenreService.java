@@ -1,20 +1,16 @@
 package ru.otus.library.service;
 
 import ru.otus.library.model.entity.Genre;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface GenreService {
 
-    Genre findByName(String name);
+    Flux<Genre> findAllGenres();
 
-    List<Genre> findAllGenres();
+    Mono<Genre> saveGenre(Genre genre);
 
-    Genre saveNewGenre(Genre genre);
-
-    void deleteGenre(final String genreName);
-
-    void deleteGenreById(final Long id);
+    Mono<Long> deleteGenreByName(String genreName);
 
     void deleteAll();
 }

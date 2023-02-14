@@ -1,28 +1,24 @@
 package ru.otus.library.service;
 
 import ru.otus.library.model.entity.Book;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface BookService {
 
-    Book findBookById(final Long id);
+    Flux<Book> findAllBooks();
 
-    List<Book> findAllBooks();
+    Flux<Book> findBooksByAuthorsName(String name);
 
-    List<Book> findBooksByAuthorsName(final String name);
+    Mono<Book> findBookById(String id);
 
-    List<Book> findBooksByAuthorId(final Long authorId);
+    Mono<Book> saveBook(Book book);
 
-    List<Book> findBooksByTitle(final String title);
+    Mono<Book> updateBookTitleById(String id, String newTitle);
 
-    List<String> findAllTitles();
+    Mono<Book> updateBook(Mono<Book> book);
 
-    Book saveNewBook(Book book);
-
-    Book updateBookTitleById(final Long id, final String newTitle);
-
-    void deleteBookById(final Long id);
+    Mono<Long> deleteBookById(String id);
 
     void deleteAll();
 }

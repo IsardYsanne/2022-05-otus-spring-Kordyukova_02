@@ -20,7 +20,9 @@ html {
 .allBooks_container {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
 
 .addBookBtn_container {
@@ -67,6 +69,12 @@ html {
   transition: all 0.3s ease 0s;
 }
 
+.addBookBtn:disabled {
+  pointer-events: none;
+  background-color: #a7a7a7;
+  transition: all 0.3s ease 0s;
+}
+
 .addGenreBtn {
   cursor: pointer;
   border: none;
@@ -78,6 +86,7 @@ html {
   font-size: 18px;
   border-radius: 15px;
   margin-left: 30px;
+  margin-right: 55px;
 }
 
 .addGenreBtn:hover {
@@ -163,4 +172,8 @@ html {
 .btnExit:hover {
   background-color: #260612;
   transition: all 0.3s ease 0s;
+}
+
+.attentionText {
+  color: #80123b;
 }
