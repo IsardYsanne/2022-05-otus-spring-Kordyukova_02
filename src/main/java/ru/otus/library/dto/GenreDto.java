@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GenreDto {
 
-    private Long id;
+    private String id;
 
     private String genreName;
 }

@@ -4,17 +4,38 @@ import Book from "./Book";
 import CreateForm from "./CreateForm";
 
 const getAllBooksUrl = 'http://localhost:8080/books/show_all';
+const getAllAuthorsUrl = 'http://localhost:8080/authors/show_all';
+const getAllGenresUrl = 'http://localhost:8080/genres/show_all';
 
 const Library = () => {
 
     const [books, setBooks] = useState([]);
+    const [authors, setAuthors] = useState([]);
+    const [genres, setGenres] = useState([]);
     const [show, setShow] = useState(false);
     const [isBookForm, setIsBookForm] = useState(false);
     const [isAuthorForm, setIsAuthorForm] = useState(false);
+    const [isSendRequestForBooks, setIsSendRequestForBooks] = useState(false);
+    const [isSendRequestForAuthors, setIsSendRequestForAuthors] = useState(false);
+    const [isSendRequestForGenres, setIsSendRequestForGenres] = useState(false);
 
     useEffect(() => {
-        fetch(getAllBooksUrl).then(response => response.json()).then(books => setBooks(books));
-    });
+        fetch(getAllBooksUrl)
+            .then(response => response.json())
+            .then(books => setBooks(books))
+            .then(setIsSendRequestForBooks(!isSendRequestForBooks));
+
+        fetch(getAllAuthorsUrl)
+            .then(response => response.json())
+            .then(authors => setAuthors(authors))
+            .then(setIsSendRequestForAuthors(!isSendRequestForAuthors));
+
+        fetch(getAllGenresUrl)
+            .then(response => response.json())
+            .then(genres => setGenres(genres))
+            .then(setIsSendRequestForGenres(!isSendRequestForGenres));
+
+    }, []);
 
     const showBookForm = () => {
         setShow(!show);
@@ -50,10 +71,18 @@ const Library = () => {
                     />
                 ))
             }
+            {
+                authors.length === 0 || genres.length === 0 ?
+            <div className={library.attentionText}>
+                Книги отсутствуют. Чтобы создать книгу - создайте автора и жанр.
+            </div>
+            : ""
+            }
             <div className={library.addBookBtn_container}>
                  <button
                      className={library.addBookBtn}
                      onClick={showBookForm}
+                     disabled={authors.length === 0 || genres.length === 0}
                  >
                      Добавить книгу
                 </button>

@@ -7,17 +7,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.library.dto.AuthorDto;
 import ru.otus.library.mapper.AuthorMapper;
-import ru.otus.library.model.entity.Author;
 import ru.otus.library.service.AuthorService;
-
-import java.util.List;
 
 @CrossOrigin
 @RestController
@@ -36,21 +35,19 @@ public class AuthorController {
     }
 
     @GetMapping("/show_all")
-    public ResponseEntity<List<AuthorDto>> showAllAuthors() {
-        return ResponseEntity.ok(authorMapper.authorListToDto(authorService.findAllAuthors()));
+    public Flux<AuthorDto> showAllAuthors() {
+        return authorService.findAllAuthors().map(AuthorMapper::authorToDto);
     }
 
     @PostMapping("/save")
-    public ResponseEntity<AuthorDto> addNewBook(@RequestBody AuthorDto authorDto) {
-        final Author author = authorService.saveAuthor(authorMapper.dtoToAuthor(authorDto));
-        return author.getId() != null ?
-                new ResponseEntity<>(authorMapper.authorToDto(author), HttpStatus.OK) :
-                new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public Mono<AuthorDto> addNewAuthor(@RequestBody AuthorDto authorDto) {
+        return authorService.saveAuthor(authorMapper.dtoToAuthor(authorDto)).map(AuthorMapper::authorToDto)
+                .switchIfEmpty(Mono.error(new RuntimeException()));
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteBook(@RequestParam(name = "id") Long id) {
-        authorService.deleteAuthorById(id);
-        return ResponseEntity.ok().build();
+    @DeleteMapping("/delete/{id}")
+    public Mono<ResponseEntity> deleteAuthor(@PathVariable(name = "id") String id) {
+        return authorService.deleteAuthorById(id)
+                .map(r -> new ResponseEntity(r == 0? HttpStatus.NOT_FOUND: HttpStatus.OK));
     }
 }

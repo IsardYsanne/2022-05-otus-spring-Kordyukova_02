@@ -1,39 +1,28 @@
 package ru.otus.library.model.entity;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import java.util.Date;
 
-@Entity
-@Table(name = "book_comments")
 @Getter
 @Setter
+@EqualsAndHashCode(exclude = {"book"})
+@Document(collection = "book_comments")
 public class Comment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @ManyToOne
-    @JoinColumn(name = "book_id")
+    @DBRef
     private Book book;
 
-    @Column(name = "comment_text")
     private String commentText;
 
-    @Column(name = "comment_date")
-    @Temporal(TemporalType.TIMESTAMP)
     private Date commentDate;
 
     public Comment(Book book, String commentText) {

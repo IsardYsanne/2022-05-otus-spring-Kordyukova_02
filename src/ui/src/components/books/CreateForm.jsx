@@ -19,6 +19,7 @@ const CreateForm = (props) => {
     const [authors, setAuthors] = useState(name);
     const [genre, setGenre] = useState(genreName);
     const [title, setTitle] = useState("");
+    const [isCreated, setIsCreated] = useState(false);
 
     const {
         show,
@@ -51,45 +52,62 @@ const CreateForm = (props) => {
         fetch(getAllAuthors)
             .then(response => response.json())
             .then(auth => setAuthorsArray(auth));
-    });
+    }, []);
 
     useEffect(() => {
         fetch(getAllGenres)
             .then(response => response.json())
             .then(genres => setGenreArray(genres));
-    });
+    }, []);
 
+    const newObjectId = () =>  {
+        const timestamp = Math.floor(new Date().getTime() / 1000).toString(16);
+        const objectId = timestamp + 'xxxxxxxxxxxxxxxx'.replace(/[x]/g, () => {
+            return Math.floor(Math.random() * 16).toString(16);
+        }).toLowerCase();
+
+        return objectId;
+    }
 
     const addBook = () => {
+        let id  = newObjectId();
+
         fetch(addBookUrl, {
             method: 'post',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
+                id,
                 title,
                 authors,
                 genre
             })
-        });
+        }).then(() => setIsCreated(!isCreated));
     };
 
     const addAuthor = () => {
+        let id  = newObjectId();
+
         fetch(addAuthorUrl, {
             method: 'post',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
+                id,
                 name
             })
-        });
+        }).then(() => setIsCreated(!isCreated));
     };
 
     const addGenre = () => {
+        let id  = newObjectId();
+
         fetch(addGenreUrl, {
             method: 'post',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
+                id,
                 genreName
             })
-        });
+        }).then(() => setIsCreated(!isCreated));
     };
 
     return (

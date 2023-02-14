@@ -1,16 +1,21 @@
 package ru.otus.library.repository;
 
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import org.springframework.stereotype.Repository;
 import ru.otus.library.model.entity.Comment;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
+@Repository
+public interface CommentRepository extends ReactiveMongoRepository<Comment, String> {
 
-public interface CommentRepository extends CrudRepository<Comment, Long> {
+    Flux<Comment> findAllById(String id);
 
-    @Query("SELECT c.commentText FROM Comment c WHERE c.book.id = :bookId")
-    List<String> findCommentsByBookId(@Param(value = "bookId") Long bookId);
+    Flux<Comment> findCommentsByBookId(String id);
 
-    List<Comment> findAllById(Long id);
+    Mono<Long> deleteCommentById(String id);
+
+    Mono<Long> deleteCommentByBookId(String bookId);
+
+    Mono<Comment> save(Mono<Comment> comment);
 }

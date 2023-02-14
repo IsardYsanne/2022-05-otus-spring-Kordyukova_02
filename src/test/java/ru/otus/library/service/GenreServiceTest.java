@@ -7,19 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 import ru.otus.library.model.entity.Genre;
 import ru.otus.library.repository.GenreRepository;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -43,33 +38,24 @@ public class GenreServiceTest {
     @Test
     public void findAllGenresTest() {
         Genre genre = new Genre();
-        genre.setId(1L);
+        genre.setId("id1");
         genre.setName(TEST_GENRE_1);
 
         Genre genre2 = new Genre();
-        genre2.setId(2L);
+        genre2.setId("id2");
         genre2.setName(TEST_GENRE_2);
 
-        List<Genre> genres = new ArrayList<>(Arrays.asList(genre, genre2));
+        Flux<Genre> genres = Flux.just(genre, genre2);
 
         when(genreRepository.findAll()).thenReturn(genres);
 
-        List<Genre> resultList = genreService.findAllGenres();
+        Flux<Genre> resultList = genreService.findAllGenres();
 
         verify(genreRepository).findAll();
-        assertThat(resultList)
-                .isNotEmpty()
-                .hasSize(2);
-    }
-
-    @Test
-    public void saveNewGenreWhenSuccessfulTest() {
-        when(genreRepository.findByName(TEST_GENRE_1)).thenReturn(null);
-        Genre genre = new Genre(TEST_GENRE_1);
-        genre.setId(1L);
-        when(genreRepository.save(any())).thenReturn(genre);
-        final Genre genre2 = genreService.saveNewGenre(genre);
-
-        assertThat(Objects.nonNull(genre2));
+        StepVerifier
+                .create(resultList)
+                .expectNextCount(2)
+                .expectComplete()
+                .verify();
     }
 }

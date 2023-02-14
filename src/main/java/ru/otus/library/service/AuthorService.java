@@ -1,24 +1,20 @@
 package ru.otus.library.service;
 
 import ru.otus.library.model.entity.Author;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface AuthorService {
 
-    Author findAuthorById(final Long id);
+    Flux<String> findAllAuthorsNames();
 
-    Author findAuthorByName(final String name);
+    Flux<Author> findAllAuthors();
 
-    List<String> findAllAuthorsNames();
+    Mono<Author> saveAuthor(Author author);
 
-    List<Author> findAllAuthors();
+    Mono<Author> updateAuthorById(final String authorId, final String newAuthorName);
 
-    Author saveAuthor(final Author author);
-
-    void deleteAuthor(final Author author);
-
-    void deleteAuthorById(final Long id);
+    Mono<Long> deleteAuthorById(String id);
 
     void deleteAll();
 }

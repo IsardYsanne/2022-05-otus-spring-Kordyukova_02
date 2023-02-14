@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,10 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.otus.library.dto.BookDto;
 import ru.otus.library.mapper.BookMapper;
-import ru.otus.library.model.entity.Book;
 import ru.otus.library.service.BookService;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @CrossOrigin
 @RestController
@@ -36,33 +36,28 @@ public class BookController {
     }
 
     @GetMapping("/show_all")
-    public ResponseEntity<List<BookDto>> showAllBooks() {
-        return ResponseEntity.ok(bookMapper.bookListToDto(bookService.findAllBooks()));
+    public Flux<BookDto> showAllBooks() {
+        return bookService.findAllBooks().map(BookMapper::bookToDto);
     }
 
-    @GetMapping("/show")
-    public ResponseEntity<BookDto> showBookForEdit(@RequestParam(name = "id") Long id) {
-        return ResponseEntity.ok(bookMapper.bookToDto(bookService.findBookById(id)));
+    @GetMapping("/show/{id}")
+    public Mono<BookDto> showBookForEdit(@PathVariable(name = "id") String id) {
+        return bookService.findBookById(id).map(BookMapper::bookToDto);
     }
 
     @PostMapping("/save")
-    public ResponseEntity<BookDto> addNewBook(@RequestBody BookDto bookDto) {
-        final Book book = bookService.saveNewBook(bookMapper.dtoToBook(bookDto));
-        return book.getId() != null ?
-                new ResponseEntity<>(bookMapper.bookToDto(book), HttpStatus.OK) :
-                new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public  Mono<BookDto> addNewBook(@RequestBody BookDto bookDto) {
+        return bookService.saveBook(bookMapper.dtoToBook(bookDto)).map(BookMapper::bookToDto)
+                .switchIfEmpty(Mono.error(new RuntimeException()));
     }
 
     @PostMapping("/update")
-    public ResponseEntity<BookDto> updateBook(@RequestParam(name = "title") String title,
-                                              @RequestParam(name = "id") Long id) {
-        final Book book = bookService.updateBookTitleById(id, title);
-        return ResponseEntity.ok(bookMapper.bookToDto(book));
+    public Mono<BookDto> updateBook(@RequestBody Mono<BookDto> bookDto) {
+        return bookService.updateBook(bookDto.map(BookMapper::dtoToBook)).map(BookMapper::bookToDto);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteBook(@RequestParam(name = "id") Long id) {
-        bookService.deleteBookById(id);
-        return ResponseEntity.ok().build();
+    public Mono<ResponseEntity> deleteBook(@RequestParam(name = "id") String id) {
+        return bookService.deleteBookById(id).map(r -> new ResponseEntity(r == 0 ? HttpStatus.NOT_FOUND : HttpStatus.OK));
     }
 }

@@ -39,7 +39,7 @@ const Book = (props) => {
         if (window.confirm("Вы действительно хотите удалить эту книгу?")) {
             fetch(removeBookUrl + '?id=' + id, {
                 method: 'delete'
-            }).then(() => setStatus('Delete successful'));
+            }).then(() => setStatus('Delete successful')).then(() => window.location.reload(false));
         }
     };
 

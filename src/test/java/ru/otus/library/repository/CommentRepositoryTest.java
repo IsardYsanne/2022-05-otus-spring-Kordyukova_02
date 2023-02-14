@@ -1,26 +1,26 @@
 package ru.otus.library.repository;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import ru.otus.library.model.entity.Author;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Comment;
 import ru.otus.library.model.entity.Genre;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@DataJpaTest
-@DirtiesContext
+@DataMongoTest
 public class CommentRepositoryTest {
 
     private static final String TEST_TEXT_1 = "testText";
@@ -37,62 +37,88 @@ public class CommentRepositoryTest {
     private CommentRepository commentRepository;
 
     @Autowired
-    private TestEntityManager entityManager;
+    private AuthorRepository authorRepository;
 
-    private Book saveTestBookToDataBase(String title, String authorName, String genreName) {
+    @Autowired
+    private BookRepository bookRepository;
+
+    @Autowired
+    private GenreRepository genreRepository;
+
+    @Before
+    public void init() {
+        commentRepository.deleteAll().block();
+    }
+
+    private Mono<Book> saveTestBookToDataBase(String title, String authorName, String genreName) {
         Author author = new Author();
         author.setName(authorName);
-        author = entityManager.persist(author);
+        author = authorRepository.save(author).block();
         Set<Author> authors = new HashSet<>();
         authors.add(author);
 
-        final Genre genre = saveTestGenre(genreName);
+        Genre genre = addTestGenre(genreName).block();
 
-        final Book book = new Book();
+        Book book = new Book();
         book.setTitle(title);
         book.setAuthors(authors);
         book.setGenre(genre);
 
-        return entityManager.persist(book);
+        return bookRepository.save(book);
     }
 
-    private Genre saveTestGenre(String testName) {
-        final Genre genre = new Genre();
+    private Mono<Genre> addTestGenre(String testName) {
+        Genre genre = new Genre();
         genre.setName(testName);
-        return entityManager.persist(genre);
+        return genreRepository.save(genre);
     }
 
     @Test
-    public void findCommentsByBookId() {
-        final Book book = saveTestBookToDataBase(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        final Comment comment = new Comment(book, TEST_TEXT_1);
+    public void findCommentsByBookIdTest() {
+        final Book book = saveTestBookToDataBase(TEST_TITLE, TEST_AUTHOR, TEST_GENRE).block();
+        Comment comment1 = new Comment(book, TEST_TEXT_1);
+        Comment comment2 = new Comment(book, TEST_TEXT_2);
 
-        commentRepository.save(comment);
-        List<String> comments = commentRepository.findCommentsByBookId(book.getId());
-        assertThat(comments).isNotNull().hasSize(1);
+        commentRepository.save(comment1).block();
+        commentRepository.save(comment2).block();
+
+        Flux<String> comments = commentRepository.findCommentsByBookId(book.getId()).map(Comment::getCommentText);
+        StepVerifier.create(comments)
+                .expectNext(TEST_TEXT_1, TEST_TEXT_2)
+                .expectComplete()
+                .verify();
     }
 
     @Test
     public void saveCommentTest() {
-        final Book book = saveTestBookToDataBase(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        final Comment comment = new Comment(book, TEST_TEXT_1);
+        Book book = saveTestBookToDataBase(TEST_TITLE, TEST_AUTHOR, TEST_GENRE).block();
+        Comment comment = new Comment(book, TEST_TEXT_1);
 
-        commentRepository.save(comment);
+        Comment comment2 = commentRepository.save(comment).block();
 
-        Comment testComment = commentRepository.findById(comment.getId()).orElseThrow();
-        assertThat(testComment).isNotNull();
+        Mono<Comment> testComment = commentRepository.findById(comment2.getId());
+        StepVerifier
+                .create(testComment)
+                .assertNext(comment1 -> assertThat(comment1).isEqualTo(comment))
+                .expectComplete()
+                .verify();
     }
 
     @Test
     public void deleteCommentByIdWhenSuccessfulTest() {
-        final Book book = saveTestBookToDataBase(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        final Comment comment = new Comment(book, TEST_TEXT_1);
-        commentRepository.save(comment);
-        final Long id = comment.getId();
+        Book book = saveTestBookToDataBase(TEST_TITLE, TEST_AUTHOR, TEST_GENRE).block();
 
-        commentRepository.deleteById(id);
+        Comment comment = new Comment(book, TEST_TEXT_1);
+        Comment comment2 = commentRepository.save(comment).block();
+        String id = comment2.getId();
 
-        final Comment testComment = commentRepository.findById(id).orElse(null);
-        assertThat(testComment).isNull();
+        Mono<Long> result = commentRepository.deleteCommentById(id);
+        assertThat(result.block() > 0).isTrue();
+
+        Mono<Comment> testComment = commentRepository.findById(comment.getId());
+        StepVerifier
+                .create(testComment)
+                .expectComplete()
+                .verify();
     }
 }

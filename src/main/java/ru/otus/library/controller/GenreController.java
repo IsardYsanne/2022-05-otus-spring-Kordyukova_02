@@ -7,17 +7,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.otus.library.dto.GenreDto;
 import ru.otus.library.mapper.GenreMapper;
-import ru.otus.library.model.entity.Genre;
 import ru.otus.library.service.GenreService;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @CrossOrigin
 @RestController
@@ -36,21 +35,19 @@ public class GenreController {
     }
 
     @GetMapping("/show_all")
-    public ResponseEntity<List<GenreDto>> showAllGenres() {
-        return ResponseEntity.ok(genreMapper.genreListToDto(genreService.findAllGenres()));
+    public Flux<GenreDto> showAllGenres() {
+        return genreService.findAllGenres().map(GenreMapper::genreToDto);
     }
 
     @PostMapping("/save")
-    public ResponseEntity<GenreDto> addNewBook(@RequestBody GenreDto genreDto) {
-        final Genre genre = genreService.saveNewGenre(genreMapper.dtoToGenre(genreDto));
-        return genre.getId() != null ?
-                new ResponseEntity<>(genreMapper.genreToDto(genre), HttpStatus.OK) :
-                new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public Mono<GenreDto> addNewGenre(@RequestBody GenreDto genreDto) {
+        return genreService.saveGenre(genreMapper.dtoToGenre(genreDto)).map(GenreMapper::genreToDto)
+                .switchIfEmpty(Mono.error(new RuntimeException()));
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteBook(@RequestParam(name = "id") Long id) {
-        genreService.deleteGenreById(id);
-        return ResponseEntity.ok().build();
+    @DeleteMapping("/delete/{name}")
+    public Mono<ResponseEntity> deleteGenreByName(@PathVariable(name = "name") String name) {
+        return genreService.deleteGenreByName(name)
+                .map(r -> new ResponseEntity(r == 0? HttpStatus.NOT_FOUND: HttpStatus.OK));
     }
 }
