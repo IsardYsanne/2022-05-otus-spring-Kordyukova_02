@@ -11,6 +11,7 @@ import ru.otus.library.model.entity.Author;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Comment;
 import ru.otus.library.model.entity.Genre;
+import ru.otus.library.model.entity.User;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +23,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @DirtiesContext
 public class CommentRepositoryTest {
+
+    private static final String TEST_USER = "testUser";
+
+    private static final String TEST_ROLE = "ROLE_USER";
+
+    private static final String TEST_PASS = "$2y$10$QjL8S2KHO095gtMtxfoJ9OXmXj4q1mTohDS4c5EI2jkS9lVzXx2pG";
 
     private static final String TEST_TEXT_1 = "testText";
 
@@ -38,6 +45,9 @@ public class CommentRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private Book saveTestBookToDataBase(String title, String authorName, String genreName) {
         Author author = new Author();
@@ -65,7 +75,8 @@ public class CommentRepositoryTest {
     @Test
     public void findCommentsByBookId() {
         final Book book = saveTestBookToDataBase(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        final Comment comment = new Comment(book, TEST_TEXT_1);
+        final User user = userRepository.save(new User(TEST_USER, TEST_PASS, TEST_ROLE));
+        final Comment comment = new Comment(book, TEST_TEXT_1, user);
 
         commentRepository.save(comment);
         List<String> comments = commentRepository.findCommentsByBookId(book.getId());
@@ -75,7 +86,8 @@ public class CommentRepositoryTest {
     @Test
     public void saveCommentTest() {
         final Book book = saveTestBookToDataBase(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        final Comment comment = new Comment(book, TEST_TEXT_1);
+        final User user = userRepository.save(new User(TEST_USER, TEST_PASS, TEST_ROLE));
+        final Comment comment = new Comment(book, TEST_TEXT_1, user);
 
         commentRepository.save(comment);
 
@@ -86,7 +98,8 @@ public class CommentRepositoryTest {
     @Test
     public void deleteCommentByIdWhenSuccessfulTest() {
         final Book book = saveTestBookToDataBase(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        final Comment comment = new Comment(book, TEST_TEXT_1);
+        final User user = userRepository.save(new User(TEST_USER, TEST_PASS, TEST_ROLE));
+        final Comment comment = new Comment(book, TEST_TEXT_1, user);
         commentRepository.save(comment);
         final Long id = comment.getId();
 

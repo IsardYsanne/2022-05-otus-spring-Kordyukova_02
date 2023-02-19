@@ -19,6 +19,9 @@ const CreateForm = (props) => {
     const [authors, setAuthors] = useState(name);
     const [genre, setGenre] = useState(genreName);
     const [title, setTitle] = useState("");
+    const [isCreated, setIsCreated] = useState(false);
+    const [selectedImage, setSelectedImage] = useState("");
+    const [base64URL, setBase64URL] = useState("");
 
     const {
         show,
@@ -28,6 +31,8 @@ const CreateForm = (props) => {
         setIsBookForm,
         setIsAuthorForm
     } = props;
+
+    props.image(selectedImage);
 
     const validate = (data) => {
         return !data;
@@ -51,14 +56,13 @@ const CreateForm = (props) => {
         fetch(getAllAuthors)
             .then(response => response.json())
             .then(auth => setAuthorsArray(auth));
-    });
+    }, []);
 
     useEffect(() => {
         fetch(getAllGenres)
             .then(response => response.json())
             .then(genres => setGenreArray(genres));
-    });
-
+    }, []);
 
     const addBook = () => {
         fetch(addBookUrl, {
@@ -67,9 +71,10 @@ const CreateForm = (props) => {
             body: JSON.stringify({
                 title,
                 authors,
-                genre
+                genre,
+                base64URL
             })
-        });
+        }).then(() => setIsCreated(!isCreated));
     };
 
     const addAuthor = () => {
@@ -79,7 +84,7 @@ const CreateForm = (props) => {
             body: JSON.stringify({
                 name
             })
-        });
+        }).then(() => setIsCreated(!isCreated));
     };
 
     const addGenre = () => {
@@ -89,7 +94,39 @@ const CreateForm = (props) => {
             body: JSON.stringify({
                 genreName
             })
+        }).then(() => setIsCreated(!isCreated));
+    };
+
+    const getBase64 = (file) => {
+        return new Promise(resolve => {
+            let baseURL = "";
+            let reader = new FileReader();
+
+            reader.readAsDataURL(file);
+
+            reader.onload = () => {
+                baseURL = reader.result;
+                console.log(baseURL);
+                resolve(baseURL);
+            };
         });
+    };
+
+    const handleFileInputChange = e => {
+
+       let selectedImage = e.target.files[0];
+
+       getBase64(selectedImage)
+            .then(result => {
+                selectedImage["base64"] = result;
+                console.log("File ", selectedImage);
+                let res = result.replace('data:image/jpeg;base64,', '');
+                setBase64URL(res);
+                setSelectedImage(selectedImage);
+            })
+            .catch(err => {
+                console.log(err);
+            });
     };
 
     return (
@@ -137,7 +174,7 @@ const CreateForm = (props) => {
                     Выберите жанр книги
                 </label>
                 <select
-                    id={2}
+                    id={3}
                     className={library.inputForm}
                     value={genre}
                     onChange={(e) => {
@@ -155,6 +192,16 @@ const CreateForm = (props) => {
                         )
                     )}
                 </select>
+                <label htmlFor={4} className={library.formLabel}>
+                    Загрузите обложку книги:
+                </label>
+                <input
+                    type={"file"}
+                    className={library.inputImage}
+                    onChange={(event) => {
+                        handleFileInputChange(event);
+                    }}
+                />
                 <div className={library.btn_container}>
                     <button
                         className={library.btnSubmit}

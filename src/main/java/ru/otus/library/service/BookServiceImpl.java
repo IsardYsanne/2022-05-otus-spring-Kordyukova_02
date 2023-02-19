@@ -1,7 +1,9 @@
 package ru.otus.library.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.otus.library.dto.BookDto;
 import ru.otus.library.model.entity.Author;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Genre;
@@ -9,11 +11,19 @@ import ru.otus.library.repository.AuthorRepository;
 import ru.otus.library.repository.BookRepository;
 import ru.otus.library.repository.GenreRepository;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
+@Slf4j
 @Service
 public class BookServiceImpl implements BookService {
 
@@ -22,6 +32,8 @@ public class BookServiceImpl implements BookService {
     private final AuthorRepository authorRepository;
 
     private final GenreRepository genreRepository;
+
+    private static final String IMAGES_FOLDER = "src/main/resources/covers/";
 
     public BookServiceImpl(final BookRepository bookRepository,
                            final AuthorRepository authorRepository,
@@ -87,17 +99,28 @@ public class BookServiceImpl implements BookService {
             }
         }
         book.setAuthors(authorSet);
-
+        convertByteToImageAndSaveToFolder(book);
         return bookRepository.save(book);
     }
 
     @Override
-    public Book updateBookTitleById(final Long id, final String newTitle) {
-        final Book book = bookRepository.findById(id).orElse(null);
-        if (book != null) {
-            book.setTitle(newTitle);
+    public Book updateBook(final BookDto bookDto) {
+        final Book book = bookRepository.findById(bookDto.getId()).orElse(null);
+        if (Objects.nonNull(book)) {
+            book.setTitle(bookDto.getTitle());
+            book.setImage(bookDto.getBase64URL());
+            bookRepository.save(book);
         }
-        saveNewBook(book);
+        return book;
+    }
+
+    @Override
+    public Book updateBookImage(BookDto bookDto) {
+        final Book book = bookRepository.findById(bookDto.getId()).orElse(null);
+        if (bookDto.getIsDeleteImage() && Objects.nonNull(book)) {
+            book.setImage(null);
+            bookRepository.save(book);
+        }
         return book;
     }
 
@@ -109,5 +132,17 @@ public class BookServiceImpl implements BookService {
     @Override
     public void deleteAll() {
         bookRepository.deleteAll();
+    }
+
+    public void convertByteToImageAndSaveToFolder(final Book book) {
+        final Date date = new Date();
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+        final File file = new File(dateFormat.format(date) + ".jpg");
+
+        try (OutputStream stream = new FileOutputStream(IMAGES_FOLDER + file)) {
+            stream.write(book.getImage());
+        } catch (IOException e) {
+            log.error("Ошибка в записи изображения: " + e.getMessage());
+        }
     }
 }

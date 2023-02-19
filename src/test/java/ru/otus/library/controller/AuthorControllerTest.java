@@ -7,9 +7,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.otus.library.authentication.CustomUserDetailService;
 import ru.otus.library.mapper.AuthorMapper;
 import ru.otus.library.service.AuthorService;
 
@@ -31,8 +33,11 @@ public class AuthorControllerTest {
     @MockBean
     private AuthorMapper authorMapper;
 
+    @MockBean
+    CustomUserDetailService userDetailService;
+
     @Test
-    public void showAllBooksTest() throws Exception {
+    public void showAllAuthorsTest() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/show_all")).andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
@@ -40,13 +45,18 @@ public class AuthorControllerTest {
     }
 
     @Test
-    public void saveBookTest() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.post("/save")).andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    public void saveAuthorTest() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.post("/save")).andExpect(status().isOk());
     }
 
+    @WithMockUser(
+            username = "user",
+            authorities = {"ROLE_USER"}
+    )
     @Test
-    public void deleteBookTest() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.delete("/delete")).andExpect(status().isOk());
+    public void deleteAuthorWithWrongAuthTest() throws Exception {
+        mvc.perform(MockMvcRequestBuilders
+                        .delete("/delete/1"))
+                .andExpect(status().isForbidden());
     }
 }

@@ -1,0 +1,59 @@
+@font-face {
+  font-family: "SBSansText";
+  src: url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.eot");
+  src: url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.eot?#iefix") format("embedded-opentype"),
+  url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.woff2") format("woff2"),
+  url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.woff") format("woff"),
+  url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.ttf") format("truetype"),
+  url("//db.onlinewebfonts.com/t/c68e21ad1a10803b1ef491fd0392b067.svg#SB Sans Text") format("svg");
+}
+
+.loginContainer {
+  background-color: rgba(0, 0, 0);
+  padding: 50px;
+  width: 450px;
+}
+
+.title {
+  color: white;
+  font-size: 25px;
+  text-align: center;
+}
+
+.formWrapper {
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.formLabel {
+  margin: 10px 0;
+}
+
+.inputForm {
+  border: none;
+  border-radius: 10px;
+}
+
+.btnSubmit {
+  cursor: pointer;
+  width: 100%;
+  border: none;
+  background-color: #735da5;
+  color: white;
+  font-size: 18px;
+  border-radius: 15px;
+  font-weight: bold;
+  height: 40px;
+}
+
+.btnSubmit:hover {
+  background-color: #3d1d6d;
+  transition: all 0.3s ease 0s;
+}
+
+.btnSubmit:disabled {
+  background-color: #9b9b9b;
+  pointer-events: none;
+  transition: all 0.3s ease 0s;
+}

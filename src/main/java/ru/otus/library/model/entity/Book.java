@@ -43,10 +43,13 @@ public class Book {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "book")
     private Set<Comment> comments;
 
-    public Book(String title, Genre genre, Set<Author> authors) {
+    private byte[] image;
+
+    public Book(String title, Genre genre, Set<Author> authors, byte[] image) {
         this.title = title;
         this.genre = genre;
         this.authors = authors;
+        this.image = image;
     }
 
     @Override

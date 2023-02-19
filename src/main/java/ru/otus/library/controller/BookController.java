@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,10 +54,15 @@ public class BookController {
                 new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<BookDto> updateBook(@RequestParam(name = "title") String title,
-                                              @RequestParam(name = "id") Long id) {
-        final Book book = bookService.updateBookTitleById(id, title);
+    @PutMapping("/update")
+    public ResponseEntity<BookDto> updateBook(@RequestBody BookDto bookDto) {
+        final Book book = bookService.updateBook(bookDto);
+        return ResponseEntity.ok(bookMapper.bookToDto(book));
+    }
+
+    @PutMapping("/update_image")
+    public ResponseEntity<BookDto> updateBookImage(@RequestBody BookDto bookDto) {
+        final Book book = bookService.updateBookImage(bookDto);
         return ResponseEntity.ok(bookMapper.bookToDto(book));
     }
 

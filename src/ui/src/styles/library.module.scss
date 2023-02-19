@@ -67,6 +67,12 @@ html {
   transition: all 0.3s ease 0s;
 }
 
+.addBookBtn:disabled {
+  pointer-events: none;
+  background-color: #a7a7a7;
+  transition: all 0.3s ease 0s;
+}
+
 .addGenreBtn {
   cursor: pointer;
   border: none;
@@ -78,6 +84,7 @@ html {
   font-size: 18px;
   border-radius: 15px;
   margin-left: 30px;
+  margin-right: 55px;
 }
 
 .addGenreBtn:hover {
@@ -162,5 +169,24 @@ html {
 
 .btnExit:hover {
   background-color: #260612;
+  transition: all 0.3s ease 0s;
+}
+
+.attentionText {
+  color: #80123b;
+}
+
+input[type=file]::file-selector-button {
+  border: none;
+  height: 40px;
+  border-radius: 15px;
+  background-color: #12321a;
+  color: #ffffff;
+  padding: 0 15px;
+  cursor: pointer;
+}
+
+input[type=file]::file-selector-button:hover {
+  background-color: #1d481f;
   transition: all 0.3s ease 0s;
 }

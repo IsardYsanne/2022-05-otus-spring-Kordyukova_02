@@ -10,7 +10,7 @@ public interface CommentService {
 
     List<Comment> findAllFullComments(Long id);
 
-    Comment saveComment(final Long bookId, final String comment);
+    Comment saveComment(final Long bookId, final String comment, final String userName);
 
     Comment updateComment(final Comment comment);
 

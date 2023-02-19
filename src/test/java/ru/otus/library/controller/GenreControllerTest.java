@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.otus.library.authentication.CustomUserDetailService;
 import ru.otus.library.mapper.GenreMapper;
 import ru.otus.library.service.GenreService;
 
@@ -30,20 +31,23 @@ public class GenreControllerTest {
     @MockBean
     private GenreMapper genreMapper;
 
+    @MockBean
+    CustomUserDetailService userDetailService;
+
     @Test
-    public void showAllBooksTest() throws Exception {
+    public void showAllGenresTest() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/show_all")).andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
-    public void saveBookTest() throws Exception {
+    public void saveGenreTest() throws Exception {
         mvc.perform(MockMvcRequestBuilders.post("/save")).andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
-    public void deleteBookTest() throws Exception {
+    public void deleteGenreTest() throws Exception {
         mvc.perform(MockMvcRequestBuilders.delete("/delete")).andExpect(status().isOk());
     }
 }

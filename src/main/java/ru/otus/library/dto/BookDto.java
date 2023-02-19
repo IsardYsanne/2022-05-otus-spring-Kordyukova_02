@@ -20,4 +20,8 @@ public class BookDto {
     private String genre;
 
     private Set<CommentDto> comments;
+
+    private byte[] base64URL;
+
+    private Boolean isDeleteImage;
 }
