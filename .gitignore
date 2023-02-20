@@ -9,6 +9,8 @@ HELP.md
 spring-shell.log
 .mvn
 
+/src/ui/dist
+
 ### STS ###
 .apt_generated
 .classpath

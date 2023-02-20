@@ -27,7 +27,7 @@ const Login = (props) => {
                 setIsAuthenticated(true);
                 onLogin(userName);
             }
-        }).catch(setIsAuthenticated(false));
+        });
     }
 
     const validate = (data) => {
