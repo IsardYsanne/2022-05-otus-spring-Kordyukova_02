@@ -104,4 +104,38 @@ public class BookControllerTest {
                         .delete("/books/delete/1"))
                 .andExpect(status().isForbidden());
     }
+
+    @WithMockUser(
+            username = "admin",
+            authorities = {"ROLE_ADMIN"}
+    )
+    @Test
+    public void showBookForAdminTest() throws Exception {
+        when(bookService.findBookById(1L))
+                .thenReturn(new Book(
+                        TEST_TITLE,
+                        new Genre(TEST_GENRE),
+                        new HashSet<>(Arrays.asList(new Author(TEST_AUTHOR))), new byte[1]));
+
+        mvc.perform(MockMvcRequestBuilders
+                        .get("/books/1"))
+                .andExpect(status().isOk());
+    }
+
+    @WithMockUser(
+            username = "wrong",
+            authorities = {"ROLE_ADMIN"}
+    )
+    @Test
+    public void showBookForWrongUserTest() throws Exception {
+        when(bookService.findBookById(1L))
+                .thenReturn(new Book(
+                        TEST_TITLE,
+                        new Genre(TEST_GENRE),
+                        new HashSet<>(Arrays.asList(new Author(TEST_AUTHOR))), new byte[1]));
+
+        mvc.perform(MockMvcRequestBuilders
+                        .get("/books/1"))
+                .andExpect(status().isForbidden());
+    }
 }
