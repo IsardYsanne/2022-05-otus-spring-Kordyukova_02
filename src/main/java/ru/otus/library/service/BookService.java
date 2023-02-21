@@ -1,20 +1,28 @@
 package ru.otus.library.service;
 
-import ru.otus.library.model.entity.Book;
+import ru.otus.library.model.entity.jpa.BookJpa;
 
 import java.util.List;
 
 public interface BookService {
 
-    List<Book> findBooksByAuthorsName(String name);
+    BookJpa findBookById(final Long id);
 
-    List<Book> findAllBooks();
+    List<BookJpa> findAllBooks();
 
-    boolean saveNewBook(Book book);
+    List<BookJpa> findBooksByAuthorsName(final String name);
 
-    boolean updateBookTitleById(String id, String newTitle);
+    List<BookJpa> findBooksByAuthorId(final Long authorId);
 
-    boolean deleteBookById(String bookId);
+    List<BookJpa> findBooksByTitle(final String title);
+
+    List<String> findAllTitles();
+
+    boolean saveNewBook(BookJpa book);
+
+    boolean updateBookTitleById(final Long id, final String newTitle);
+
+    void deleteBookById(final Long id);
 
     void deleteAll();
 }
