@@ -50,7 +50,7 @@ const Book = (props) => {
         if (window.confirm("Вы действительно хотите удалить эту книгу?")) {
             fetch(removeBookUrl + '?id=' + id, {
                 method: 'delete'
-            }).then(() => setStatus('Delete successful')).then(() => window.location.reload(false));
+            }).then(() => setStatus('Delete successful'));
         }
     };
 
@@ -68,7 +68,7 @@ const Book = (props) => {
                     base64URL: book.base64URL,
                     isDeleteImage
                 })
-            }).then(() => window.location.reload(false));
+            });
         }
     };
 

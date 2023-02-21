@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Route, Routes} from "react-router-dom";
-import Library from "./books/Library";
-import Login from "./Login";
+import Library from "./books/Library.jsx";
+import Login from "./Login.jsx";
 
 const Root = () => {
 
@@ -17,7 +17,12 @@ const Root = () => {
         <div>
             {isAuthenticated ?
                 <Routes>
-                    <Route path="/" exact element={<Library/>}/>
+                    <Route path="/" exact element={
+                        <Library
+                            username={userName}
+                            isAuthenticated={isAuthenticated}
+                        />}
+                    />
                 </Routes>
                 :
                 <Routes>
