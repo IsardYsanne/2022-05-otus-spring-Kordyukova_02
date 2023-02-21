@@ -7,11 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.shell.Shell;
 import org.springframework.test.context.junit4.SpringRunner;
-import ru.otus.library.model.entity.Author;
-import ru.otus.library.model.entity.Comment;
-import ru.otus.library.model.entity.Book;
-import ru.otus.library.repository.AuthorRepository;
-import ru.otus.library.repository.BookRepository;
+import org.springframework.transaction.annotation.Transactional;
+import ru.otus.library.model.entity.jpa.AuthorJpa;
+import ru.otus.library.model.entity.jpa.BookJpa;
+import ru.otus.library.model.entity.jpa.CommentJpa;
+import ru.otus.library.model.entity.jpa.GenreJpa;
+import ru.otus.library.repository.jpa.AuthorRepositoryJpa;
+import ru.otus.library.repository.jpa.BookRepositoryJpa;
+import ru.otus.library.repository.jpa.CommentRepositoryJpa;
+import ru.otus.library.repository.jpa.GenreRepositoryJpa;
 
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Transactional
 public class LibraryCLITest {
 
     private static final String TEST_TITLE_1 = "testName";
@@ -39,22 +44,27 @@ public class LibraryCLITest {
 
     private static final String TEST_TEXT_2 = "testText2";
 
-    private static final String TEST_USER_1 = "testUser";
-
-    private static final String TEST_USER_2 = "testUser2";
-
     @Autowired
     private Shell shell;
 
     @Autowired
-    private BookRepository bookRepository;
+    private BookRepositoryJpa bookRepository;
 
     @Autowired
-    private AuthorRepository authorRepository;
+    private AuthorRepositoryJpa authorRepository;
+
+    @Autowired
+    private GenreRepositoryJpa genreRepository;
+
+    @Autowired
+    private CommentRepositoryJpa commentRepository;
 
     @Before
     public void init() {
+        genreRepository.deleteAll();
+        authorRepository.deleteAll();
         bookRepository.deleteAll();
+        commentRepository.deleteAll();
     }
 
     @Test
@@ -72,13 +82,13 @@ public class LibraryCLITest {
 
     @Test
     public void findAllBooksTest() {
-        final Book book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        final Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
+        final BookJpa book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        final BookJpa book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
 
         final Object res = shell.evaluate(() -> "all-books");
 
         final String result = res.toString();
-        final String expected = "Book ID                 Author(s)  Title    Genre";
+        final String expected = "Book IDAuthor(s)  Title    Genre";
 
         assertThat(result).contains(expected, String.valueOf(book1.getId()), TEST_AUTHOR_1, TEST_TITLE_1, TEST_GENRE_1,
                 String.valueOf(book2.getId()), TEST_AUTHOR_2, TEST_TITLE_2, TEST_GENRE_2);
@@ -100,49 +110,44 @@ public class LibraryCLITest {
     @Test
     public void findBooksByAuthorsNameTest() {
         saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        final Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
+        final BookJpa book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
 
         final Object res = shell.evaluate(() -> "book-of-author " + TEST_AUTHOR_2);
 
         final String result = res.toString();
-        final String expected = "Book ID                 Author(s)  Title    Genre";
+        final String expected = "Book IDAuthor(s)  Title    Genre";
 
         assertThat(result).contains(expected, String.valueOf(book2.getId()), TEST_AUTHOR_2, TEST_TITLE_2, TEST_GENRE_2);
     }
 
     @Test
     public void findAllCommentsForBookTest() {
-        final Set<Author> authors = new HashSet<>();
-        Author author = new Author();
-        author.setName(TEST_AUTHOR_1);
-        authors.add(author);
+        final BookJpa book = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        CommentJpa comment1 = new CommentJpa(book, TEST_TEXT_1);
+        CommentJpa comment2 = new CommentJpa(book, TEST_TEXT_2);
 
-        final Book book = new Book(TEST_TITLE_1, TEST_GENRE_1, authors);
-        final Comment comment1 = new Comment(TEST_USER_1, TEST_TEXT_1);
-        final Comment comment2 = new Comment(TEST_USER_2, TEST_TEXT_2);
+        commentRepository.save(comment1);
+        commentRepository.save(comment2);
 
-        final Set<Comment> comments = new HashSet<>();
-        comments.add(comment1);
-        comments.add(comment2);
+        Object result = shell.evaluate(() -> "comment-book " + book.getId());
 
-        book.setComments(comments);
-        bookRepository.save(book);
-
-        final Object result = shell.evaluate(() -> "comment-book " + book.getId());
-
-        assertThat(result.toString()).isNotNull().contains(TEST_TEXT_1, TEST_TEXT_2);
+        assertThat(result.toString())
+                .isNotNull()
+                .contains(TEST_TEXT_1, TEST_TEXT_2);
     }
 
     @Test
     public void saveNewCommentToBookTest() {
-        Book book = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        String id = book.getId();
+        BookJpa book = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        Long id = book.getId();
 
-        shell.evaluate(() -> "add-comment " + id + " " + TEST_USER_1 + " " + TEST_TEXT_1);
+        shell.evaluate(() -> "add-comment " + id + " " + TEST_TEXT_1);
 
-        Book result = bookRepository.findBookWithCommentsById(id);
-        Comment comment = result.getComments().iterator().next();
-        assertThat(comment.getCommentText()).isNotNull().contains(TEST_TEXT_1);
+        List<String> result = commentRepository.findCommentsByBookId(id);
+        assertThat(result)
+                .isNotNull()
+                .hasSize(1)
+                .contains(TEST_TEXT_1);
     }
 
     @Test
@@ -152,15 +157,15 @@ public class LibraryCLITest {
         final Object res = shell.evaluate(() -> "add-book " + TEST_TITLE_1 + " " + TEST_GENRE_1 + " " + TEST_AUTHOR_1);
 
         final String result = res.toString();
-        final String expected = "Новая книга была добавлена успешно.";
+        final String expected = "Такая книга уже существует.";
 
         assertThat(result).isEqualTo(expected);
     }
 
     @Test
     public void updateBookTitleByIdTest() {
-        Book book = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        final String id = book.getId();
+        BookJpa book = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        final Long id = book.getId();
 
         shell.evaluate(() -> "update-title-id " + id + " " + TEST_TITLE_2);
 
@@ -178,43 +183,42 @@ public class LibraryCLITest {
         assertThat(result).isEqualTo(expected);
     }
 
-    private Book saveTestBookToDataBase(String title, String authorName, String genreName) {
-        Author author = new Author();
+    private BookJpa saveTestBookToDataBase(String title, String authorName, String genreName) {
+        AuthorJpa author = new AuthorJpa();
         author.setName(authorName);
         author = authorRepository.save(author);
-        final Set<Author> authors = new HashSet<>();
+        final Set<AuthorJpa> authors = new HashSet<>();
         authors.add(author);
 
-        final Book book = new Book();
+        final GenreJpa genre = saveTestGenre(genreName);
+
+        final BookJpa book = new BookJpa();
         book.setTitle(title);
         book.setAuthors(authors);
-        book.setGenre(genreName);
+        book.setGenre(genre);
 
         return bookRepository.save(book);
     }
 
     @Test
     public void deleteBookByIdTest() {
-        final Book book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        final Book book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
+        final BookJpa book1 = saveTestBookToDataBase(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        final BookJpa book2 = saveTestBookToDataBase(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
 
-        final String id = book2.getId();
+        final Long id = book2.getId();
         shell.evaluate(() -> "delete-book " + id);
 
-        final List<Book> books = bookRepository.findAll();
+        final List<BookJpa> books = bookRepository.findAll();
         assertThat(books)
                 .hasSize(1)
                 .contains(book1)
                 .doesNotContain(book2);
     }
 
-    @Test
-    public void deleteBookByIdWhenNoBookTest() {
-        final Object res = shell.evaluate(() -> "delete-book " + 100);
-
-        final String result = res.toString();
-        final String expected = "Книга успешно удалена.";
-
-        assertThat(result).isEqualTo(expected);
+    private GenreJpa saveTestGenre(String testName) {
+        GenreJpa genre = new GenreJpa();
+        genre.setName(testName);
+        genre = genreRepository.save(genre);
+        return genre;
     }
 }

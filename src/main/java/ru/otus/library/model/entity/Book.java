@@ -1,10 +1,16 @@
 package ru.otus.library.model.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Set;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Document(collection = "books")
 public class Book {
 
@@ -23,49 +29,6 @@ public class Book {
         this.authors = authorList;
         this.genre = genre;
         this.title = title;
-    }
-
-    public Book() {
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getGenre() {
-        return genre;
-    }
-
-    public void setGenre(String genre) {
-        this.genre = genre;
-    }
-
-    public Set<Comment> getComments() {
-        return comments;
-    }
-
-    public void setComments(Set<Comment> comments) {
-        this.comments = comments;
-    }
-
-    public Set<Author> getAuthors() {
-        return authors;
-    }
-
-    public void setAuthors(Set<Author> authors) {
-        this.authors = authors;
     }
 
     @Override

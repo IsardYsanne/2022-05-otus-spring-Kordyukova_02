@@ -1,8 +1,19 @@
 package ru.otus.library.model.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.Date;
 
+@Getter
+@Setter
+@Document(collection = "comments")
 public class Comment {
+
+    @Id
+    private String id;
 
     private String userName;
 
@@ -18,29 +29,5 @@ public class Comment {
 
     public Comment() {
         commentDate = new Date();
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getCommentText() {
-        return commentText;
-    }
-
-    public void setCommentText(String commentText) {
-        this.commentText = commentText;
-    }
-
-    public Date getCommentDate() {
-        return commentDate;
-    }
-
-    public void setCommentDate(Date commentDate) {
-        this.commentDate = commentDate;
     }
 }

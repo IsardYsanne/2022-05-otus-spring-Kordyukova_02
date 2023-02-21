@@ -2,7 +2,20 @@ spring:
   data:
     mongodb:
       database: library
+      host: localhost
+      port: 27017
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/library_jpa
+    username: postgres
+    password: pass
+#    initialization-mode: always
+
+  batch:
+    job:
+      enabled: false
+    initialize-schema: always
 
 logging:
   level:
-    root: error
+    root: info

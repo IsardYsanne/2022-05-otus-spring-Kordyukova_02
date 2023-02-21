@@ -1,16 +1,22 @@
 package ru.otus.library.service;
 
-import ru.otus.library.model.entity.Author;
+import ru.otus.library.model.entity.jpa.AuthorJpa;
 
 import java.util.List;
 
 public interface AuthorService {
 
+    AuthorJpa findAuthorById(final Long id);
+
+    AuthorJpa findAuthorByName(final String name);
+
     List<String> findAllAuthorsNames();
 
-    Author saveAuthor(final Author author);
+    boolean saveAuthor(final AuthorJpa author);
 
-    void updateAuthorById(final String authorId, final String newAuthorName, final String bookId);
+    void deleteAuthor(final AuthorJpa author);
+
+    void deleteAuthorById(final Long id);
 
     void deleteAll();
 }
