@@ -41,8 +41,9 @@ public class CommentController {
 
     @PostMapping("/save")
     public ResponseEntity<CommentDto> saveNewComment(@RequestBody String text,
-                                                     @RequestParam(name = "id") Long bookId) {
-        final Comment comment = commentService.saveComment(bookId, text);
+                                                     @RequestParam(name = "id") Long bookId,
+                                                     String userName) {
+        final Comment comment = commentService.saveComment(bookId, text, userName);
         return comment.getId() != null ?
                 new ResponseEntity<>(bookMapper.commentToDto(comment), HttpStatus.OK) :
                 new ResponseEntity<>(HttpStatus.NOT_FOUND);

@@ -1,5 +1,6 @@
 package ru.otus.library.service;
 
+import ru.otus.library.dto.BookDto;
 import ru.otus.library.model.entity.Book;
 
 import java.util.List;
@@ -20,7 +21,9 @@ public interface BookService {
 
     Book saveNewBook(Book book);
 
-    Book updateBookTitleById(final Long id, final String newTitle);
+    Book updateBook(final BookDto bookDto);
+
+    Book updateBookImage(final BookDto bookDto);
 
     void deleteBookById(final Long id);
 

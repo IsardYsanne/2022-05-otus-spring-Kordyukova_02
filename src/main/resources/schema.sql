@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS books
 (
     id       SERIAL PRIMARY KEY,
     title    VARCHAR(255),
-    genre_id INTEGER REFERENCES genres (id)
+    genre_id INTEGER REFERENCES genres (id),
+    image    BYTEA
 );
 
 CREATE TABLE IF NOT EXISTS books_authors
@@ -24,9 +25,18 @@ CREATE TABLE IF NOT EXISTS books_authors
     PRIMARY KEY (authors_id, books_id)
 );
 
+
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    user_name VARCHAR(255) UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS book_comments (
     id SERIAL PRIMARY KEY,
     comment_text TEXT,
     comment_date TIMESTAMP,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     book_id INTEGER REFERENCES books(id) ON DELETE CASCADE
 );

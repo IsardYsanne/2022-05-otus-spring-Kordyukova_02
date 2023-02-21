@@ -22,7 +22,7 @@ public class BookMapper {
     public Book dtoToBook(BookDto bookDto) {
         final Set<Author> authors = authorsToSet(bookDto.getAuthors());
         final Genre genre = new Genre(bookDto.getGenre());
-        return new Book(bookDto.getTitle(), genre, authors);
+        return new Book(bookDto.getTitle(), genre, authors, bookDto.getBase64URL());
     }
 
     public static BookDto bookToDto(Book book) {
@@ -49,6 +49,7 @@ public class BookMapper {
                     .collect(Collectors.toSet());
         }
         result.setComments(commentDto);
+        result.setBase64URL(book.getImage());
         return result;
     }
 

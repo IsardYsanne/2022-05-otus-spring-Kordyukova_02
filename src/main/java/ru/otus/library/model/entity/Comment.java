@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -36,10 +37,15 @@ public class Comment {
     @Temporal(TemporalType.TIMESTAMP)
     private Date commentDate;
 
-    public Comment(Book book, String commentText) {
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    public Comment(Book book, String commentText, User user) {
         this.book = book;
         this.commentText = commentText;
         this.commentDate = new Date();
+        this.user = user;
     }
 
     public Comment() {

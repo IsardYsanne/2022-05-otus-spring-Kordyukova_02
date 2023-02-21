@@ -3,8 +3,10 @@ package ru.otus.library.service;
 import org.springframework.stereotype.Service;
 import ru.otus.library.model.entity.Book;
 import ru.otus.library.model.entity.Comment;
+import ru.otus.library.model.entity.User;
 import ru.otus.library.repository.BookRepository;
 import ru.otus.library.repository.CommentRepository;
+import ru.otus.library.repository.UserRepository;
 
 import java.util.List;
 
@@ -15,9 +17,12 @@ public class CommentServiceImpl implements CommentService {
 
     private final BookRepository bookRepository;
 
-    public CommentServiceImpl(CommentRepository commentRepository, BookRepository bookRepository) {
+    private final UserRepository userRepository;
+
+    public CommentServiceImpl(CommentRepository commentRepository, BookRepository bookRepository, UserRepository userRepository) {
         this.commentRepository = commentRepository;
         this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -31,13 +36,17 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment saveComment(Long bookId, String comment) {
+    public Comment saveComment(Long bookId, String comment, String userName) {
         final Book book = bookRepository.findById(bookId).orElse(null);
         if (book == null) {
             throw new RuntimeException("Такой книги не существует.");
         }
-
-        final Comment com = commentRepository.save(new Comment(book, comment));
+        User user = userRepository.findUserByUserName(userName);
+        if (user == null) {
+            user = userRepository
+                    .save(new User(userName, "$2y$10$QjL8S2KHO095gtMtxfoJ9OXmXj4q1mTohDS4c5EI2jkS9lVzXx2pG", "ROLE_USER"));
+        }
+        final Comment com = commentRepository.save(new Comment(book, comment, user));
         book.getComments().add(com);
         return com;
     }
