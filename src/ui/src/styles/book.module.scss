@@ -9,13 +9,13 @@
 }
 
 .book_wrapper {
-  flex: 0 1 33.333%;
+  flex: 0 1 25%;
 }
 
 .book_column {
   display: flex;
   flex-direction: column;
-  padding: 20px 55px;
+  padding: 20px;
   font-family: 'SBSansText', sans-serif;
 }
 

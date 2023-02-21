@@ -74,7 +74,7 @@ public class BookController {
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("hasNameOf('admin')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/{bookId}")
     public BookDto showBookById(@PathVariable("bookId") Long bookId) {
         return bookMapper.bookToDto(bookService.findBookById(bookId));

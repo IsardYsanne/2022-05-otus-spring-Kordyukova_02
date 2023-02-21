@@ -36,7 +36,7 @@ const Login = (props) => {
 
     return (
         <div className={login.loginContainer}>
-            <p className={login.title}>Аутентифицируйтесь:</p>
+            <p className={login.title}>Вход в систему</p>
             <form className={login.formWrapper} action={"/login"}>
                 <label htmlFor={1} className={login.formLabel}>
                     Введите логин:
