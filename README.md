@@ -130,4 +130,16 @@ UsersServices реализовать самостоятельно.
 <br>
 <br>
 <br>
+Подключить Spring Boot Actuator в приложение.
+<br>
+Включить метрики, healthchecks и logfile.
+<br>
+Реализовать свой собственный HealthCheck индикатор
+<br>
+UI для данных от Spring Boot Actuator реализовывать не нужно.
+<br>
+Опционально: переписать приложение на HATEOAS принципах с помощью Spring Data REST Repository
+<br>
+<br>
+<br>
 Выполнила: Kordyukova Galina
