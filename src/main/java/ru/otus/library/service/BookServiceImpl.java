@@ -1,5 +1,6 @@
 package ru.otus.library.service;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,9 +49,19 @@ public class BookServiceImpl implements BookService {
         return bookRepository.findById(id).orElseThrow();
     }
 
+    @HystrixCommand(groupKey = "BookGroup", commandKey = "findAllBooksCommand", fallbackMethod = "findDefaultBooks")
     @Override
     public List<Book> findAllBooks() {
         return bookRepository.findAll();
+    }
+
+    /**
+     * В случае "падения" вернем пустую коллекцию книг.
+     *
+     * @return коллекция книг.
+     */
+    public List<Book> findDefaultBooks() {
+        return Collections.emptyList();
     }
 
     @Override

@@ -10,9 +10,29 @@ spring:
       ddl-auto: update
 #    generate-ddl: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - metrics
+          - health
+          - logfile
+          - hystrix.stream
+  endpoint:
+    health:
+      show-details: always
+  health:
+    defaults:
+      enabled: true
+
 server:
   port: 8080
 
 logging:
   level:
     root: info
+  pattern:
+    file: '%d{yyyy-MM-dd HH:mm:ss} %-5level %msg%n'
+  file:
+    name: 'logs/app.log'
