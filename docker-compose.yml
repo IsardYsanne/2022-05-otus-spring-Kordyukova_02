@@ -1,0 +1,29 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: library
+    stdin_open: true
+    tty: true
+    ports:
+      - '8080:8080'
+    networks:
+      - nw
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/library
+      - SPRING_DATASOURCE_USERNAME=userdb
+      - SPRING_DATASOURCE_PASSWORD=pass
+  postgres:
+    image: postgres:10
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=userdb
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=library
+    networks:
+      - nw
+networks:
+  nw:
